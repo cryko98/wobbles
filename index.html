@@ -26,6 +26,8 @@
             justify-content: center;
             align-items: flex-start; /* Changed from center */
             min-height: 100vh;
+            height: 100vh; /* Added */
+            overflow-y: hidden; /* Added */
             padding: 0;
             -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
         }
@@ -36,9 +38,9 @@
             box-shadow: none; /* Changed from 0 25px 70px rgba(0,0,0,0.4) */
             max-width: 450px;
             width: 100%;
-            overflow: hidden;
+            overflow-y: hidden; /* Changed from overflow: hidden */
             position: relative;
-            min-height: 100vh; /* Added */
+            height: 100vh; /* Changed from min-height: 100vh */
             display: flex; /* Added */
             flex-direction: column; /* Added */
         }
@@ -160,10 +162,11 @@
 
         /* --- Pet Area --- */
         .pet-area {
-            padding: 30px 20px;
+            padding: 10px 20px; /* Changed from 30px 20px */
             text-align: center;
             background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
-            min-height: 380px;
+            flex: 1; /* Changed from min-height: 380px */
+            min-height: 0; /* Added to allow shrinking */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -237,7 +240,7 @@
             position: relative;
             cursor: pointer;
             transition: transform 0.2s;
-            margin-top: 20px;
+            /* margin-top: 20px; */ /* Removed */
             z-index: 1;
         }
         .wobbles-container:active { transform: scale(0.95); }
@@ -916,11 +919,25 @@
             body {
                 align-items: center; /* Restore centering */
                 padding: 20px; /* Restore padding */
+                height: auto; /* Reset body height */
+                overflow-y: auto; /* Restore scrolling */
             }
             .game-container {
+                height: auto; /* Reset container height */
                 min-height: auto; /* Reset min-height */
                 border-radius: 25px; /* Restore border-radius */
                 box-shadow: 0 25px 70px rgba(0,0,0,0.4); /* Restore shadow */
+                overflow-y: hidden; /* Still hide overflow on desktop container */
+            }
+
+            .pet-area {
+                flex: 0 1 auto; /* Reset flex */
+                min-height: 380px; /* Restore min-height for desktop */
+                padding: 30px 20px; /* Restore padding for desktop */
+            }
+
+            .wobbles-container {
+                margin-top: 20px; /* Restore margin for desktop */
             }
         }
 
@@ -2108,6 +2125,7 @@
     </script>
 </body>
 </html>
+
 
 
 
