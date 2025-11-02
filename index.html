@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4facfe"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Wobbles">
+    <link rel="apple-touch-icon" href="https://pbs.twimg.com/media/G4x4K1HXAAAPy5X?format=png&name=small">
+    
     <title>Wobbles - Virtual Pet Game</title>
     <style>
         /* --- Base Setup --- */
@@ -1951,6 +1958,128 @@
 
         // Start the game when the page loads
         window.onload = init;
+
+        // --- PWA Setup ---
+        function registerPWA() {
+            // 1. Create Manifest
+            const manifest = {
+                "name": "Wobbles - Virtual Pet",
+                "short_name": "Wobbles",
+                "start_url": ".",
+                "display": "standalone",
+                "background_color": "#667eea",
+                "theme_color": "#4facfe",
+                "description": "A fun virtual pet game.",
+                "icons": [
+                    {
+                        "src": "https://pbs.twimg.com/media/G4x4K1HXAAAPy5X?format=png&name=small",
+                        "sizes": "192x192",
+                        "type": "image/png"
+                    },
+                    {
+                        "src": "https://pbs.twimg.com/media/G4x4K1HXAAAPy5X?format=png&name=small",
+                        "sizes": "512x512",
+                        "type": "image/png"
+                    }
+                ]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+            const manifestUrl = URL.createObjectURL(manifestBlob);
+            document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
+
+            // 2. Register Service Worker for offline capability
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'wobbles-cache-v1';
+                    // We only cache the logo, as the game itself is fully contained in the HTML.
+                    const urlsToCache = [
+                        '${location.href}', // Cache the main HTML file itself
+                        'https://pbs.twimg.com/media/G4x4K1HXAAAPy5X?format=png&name=small'
+                    ];
+
+                    self.addEventListener('install', event => {
+                        event.waitUntil(
+                            caches.open(CACHE_NAME)
+                                .then(cache => {
+                                    console.log('Opened cache');
+                                    // Use addAll for atomic cache addition
+                                    return cache.addAll(urlsToCache).catch(err => {
+                                        console.warn('Failed to cache all URLs:', err);
+                                        // Try caching individually as a fallback
+                                        return Promise.all(urlsToCache.map(url => {
+                                            return cache.add(url).catch(addErr => {
+                                                console.warn('Failed to cache:', url, addErr);
+                                            });
+                                        }));
+                                    });
+                                })
+                        );
+                    });
+
+                    self.addEventListener('fetch', event => {
+                        event.respondWith(
+                            caches.match(event.request)
+                                .then(response => {
+                                    // Cache hit - return response
+                                    if (response) {
+                                        return response;
+                                    }
+                                    // Not in cache, fetch from network
+                                    return fetch(event.request).then(
+                                        networkResponse => {
+                                            // Check if we received a valid response
+                                            if(!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+                                                return networkResponse;
+                                            }
+
+                                            // Clone the response
+                                            const responseToCache = networkResponse.clone();
+
+                                            caches.open(CACHE_NAME)
+                                                .then(cache => {
+                                                    cache.put(event.request, responseToCache);
+                                                });
+
+                                            return networkResponse;
+                                        }
+                                    );
+                                }
+                            )
+                        );
+                    });
+
+                    // Clean up old caches
+                    self.addEventListener('activate', event => {
+                        const cacheWhitelist = [CACHE_NAME];
+                        event.waitUntil(
+                            caches.keys().then(cacheNames => {
+                                return Promise.all(
+                                    cacheNames.map(cacheName => {
+                                        if (cacheWhitelist.indexOf(cacheName) === -1) {
+                                            return caches.delete(cacheName);
+                                        }
+                                    })
+                                );
+                            })
+                        );
+                    });
+                `;
+                
+                try {
+                    const blob = new Blob([swCode], { type: 'application/javascript' });
+                    const swUrl = URL.createObjectURL(blob);
+                    navigator.serviceWorker.register(swUrl)
+                        .then(registration => {
+                            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        })
+                        .catch(err => {
+                            console.log('ServiceWorker registration failed: ', err);
+                        });
+                } catch (e) {
+                    console.error('Error creating ServiceWorker Blob:', e);
+                }
+            }
+        }
 
     </script>
 </body>
