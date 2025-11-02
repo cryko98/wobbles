@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wobbles - Virtual Pet Game</title>
+    <style>
+        /* --- Base Setup --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.4);
+            max-width: 450px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- Header --- */
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 25px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            vertical-align: middle;
+            margin-right: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header-emoji-fallback {
+            display: none;
+            font-size: 36px; /* Match h1 */
+            margin-right: 10px;
+            text-shadow: none; /* Already part of h1 */
+        }
+
+        .level-badge {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            background: rgba(255,255,255,0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* --- Stats Bars --- */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 3px solid #e9ecef;
+        }
+
+        .stat {
+            background: white;
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-value {
+            font-size: 12px;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .stat-bar {
+            width: 100%;
+            height: 24px;
+            background: #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #dee2e6;
+        }
+
+        .stat-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+        }
+
+        .hunger-fill { background: linear-gradient(90deg, #ff6b6b, #ff8787); }
+        .happiness-fill { background: linear-gradient(90deg, #ffd93d, #ffed4e); }
+        .health-fill { background: linear-gradient(90deg, #51cf66, #69db7c); }
+        .energy-fill { background: linear-gradient(90deg, #4dabf7, #74c0fc); }
+
+        /* --- Pet Area --- */
+        .pet-area {
+            padding: 30px 20px;
+            text-align: center;
+            background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
+            min-height: 380px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            transition: filter 0.5s;
+        }
+
+        .coins-display, .xp-display {
+            position: absolute;
+            top: 15px;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-size: 16px;
+            z-index: 2;
+        }
+        .coins-display { right: 20px; }
+        .xp-display { 
+            left: 20px; 
+            font-size: 14px;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        .message {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 10;
+            max-width: 80%;
+            text-align: center;
+        }
+        .message.show { opacity: 1; }
+
+        /* --- Status Effect Icon --- */
+        .status-effect {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 40px;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.5s;
+            animation: pulse 1.5s ease-in-out infinite;
+            text-shadow: 0 0 10px white;
+        }
+        .status-effect.show { opacity: 1; }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.2); }
+        }
+
+        /* --- Wobbles Character --- */
+        .wobbles-container {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+            z-index: 1;
+        }
+        .wobbles-container:active { transform: scale(0.95); }
+
+        .wobbles {
+            width: 180px;
+            height: 180px;
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 20px 15px rgba(0,0,0,0.2));
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+        }
+
+        .wobbles-body {
+            width: 180px;
+            height: 120px;
+            background: linear-gradient(135deg, #4dd0e1 0%, #26c6da 100%);
+            border-radius: 50% 50% 50% 50% / 70% 70% 30% 30%;
+            position: absolute;
+            bottom: 0;
+            animation: pulse-body 2s ease-in-out infinite;
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.1),
+                        inset 10px 10px 20px rgba(255,255,255,0.3);
+        }
+
+        @keyframes pulse-body {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        .wobbles-shine {
+            position: absolute;
+            top: 15px;
+            left: 30px;
+            width: 40px;
+            height: 30px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            filter: blur(5px);
+        }
+
+        .wobbles-eye {
+            width: 30px;
+            height: 35px;
+            background: black;
+            border-radius: 50%;
+            position: absolute;
+            top: 35px;
+            box-shadow: inset 0 -5px 10px rgba(255,255,255,0.3);
+            animation: blink 4s infinite;
+        }
+        .wobbles-eye.left { left: 45px; }
+            animation: blink 4s infinite;
+        }
+        .wobbles-eye.left { left: 45px; }
+        .wobbles-eye.right { right: 45px; }
+
+        .wobbles.is-sleeping .wobbles-eye {
+            height: 6px; /* Make it a thin line */
+            top: 50px; /* Reposition vertically */
+            background: #333; /* Use a solid color */
+            border-radius: 3px; /* Slightly rounded line */
+            box-shadow: none; /* Remove inset shadow */
+            animation: none; /* Stop blinking */
+        }
+
+        @keyframes blink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+
+        .wobbles-eye-shine {
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 8px;
+            left: 5px;
+        }
+
+        .wobbles.is-sleeping .wobbles-eye-shine {
+            display: none; /* Hide shine */
+        }
+
+        .wobbles-cheek {
+            width: 25px;
+            height: 25px;
+            background: #ff9eb3;
+            border-radius: 50%;
+            position: absolute;
+            top: 60px;
+            opacity: 0.7;
+        }
+        .wobbles-cheek.left { left: 15px; }
+        .wobbles-cheek.right { right: 15px; }
+
+        .wobbles-mouth {
+            width: 40px;
+            height: 15px;
+            border: 4px solid #333;
+            border-top: none;
+            border-radius: 0 0 40px 40px;
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.3s;
+        }
+        .wobbles-mouth.happy {
+            height: 20px;
+            border-radius: 0 0 50px 50px;
+            bottom: 20px;
+        }
+        .wobbles-mouth.sad {
+            height: 10px;
+            border-radius: 50px 50px 0 0;
+            border-top: 4px solid #333;
+            border-bottom: none;
+            bottom: 30px;
+        }
+
+
+        .wobbles-tentacles {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            width: 150px;
+            justify-content: space-around;
+        }
+
+        .tentacle {
+            width: 18px;
+            height: 70px;
+            background: linear-gradient(180deg, #4dd0e1 0%, #26c6da 100%);
+            border-radius: 20px 20px 10px 10px;
+            animation: wiggle 2s ease-in-out infinite;
+            box-shadow: inset -3px 0 5px rgba(0,0,0,0.1);
+            transform-origin: top center;
+        }
+
+        .tentacle:nth-child(1) { animation-delay: 0s; }
+        .tentacle:nth-child(2) { animation-delay: 0.2s; height: 75px; }
+        .tentacle:nth-child(3) { animation-delay: 0.4s; }
+        .tentacle:nth-child(4) { animation-delay: 0.6s; height: 75px; }
+        .tentacle:nth-child(5) { animation-delay: 0.8s; }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        .wobbles-shadow {
+            width: 120px;
+            height: 20px;
+            background: rgba(0,0,0,0.15);
+            border-radius: 50%;
+            position: absolute;
+            bottom: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            filter: blur(5px);
+            animation: shadow-pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes shadow-pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(0.8); }
+        }
+
+        /* --- Accessories --- */
+        .wobbles-hat {
+            width: 80px;
+            height: 60px;
+            position: absolute;
+            top: 10px; /* Adjusted position */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: none;
+        }
+        .wobbles-hat::before { /* Brim */
+            content: '';
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 80px;
+            height: 15px;
+            background: #333;
+            border-radius: 50%;
+        }
+        .wobbles-hat::after { /* Top */
+            content: '';
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            width: 50px;
+            height: 45px;
+            background: #333;
+            border-radius: 10px 10px 0 0;
+            border: 3px solid #444;
+        }
+        
+        .wobbles-glasses {
+            position: absolute;
+            top: 95px; /* Adjusted position */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: none;
+        }
+        .wobbles-glasses .lens {
+            width: 40px;
+            height: 40px;
+            background: rgba(20,20,20,0.7);
+            border: 3px solid #333;
+            border-radius: 50%;
+            position: absolute;
+            top: 0; /* Added */
+        }
+        .wobbles-glasses .lens.left { left: -45px; }
+        .wobbles-glasses .lens.right { left: 5px; }
+        .wobbles-glasses .bridge {
+            width: 10px;
+            height: 3px;
+            background: #333;
+            position: absolute;
+            left: -5px;
+            top: 18px;
+        }
+
+        /* --- Action Buttons --- */
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 20px;
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 10px;
+            border-radius: 18px;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+            position: relative;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+        }
+        .action-btn:disabled {
+            filter: grayscale(80%);
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.2);
+            transition: left 0.3s;
+        }
+        .action-btn:not(:disabled):hover::before { left: 100%; }
+        .action-btn:not(:disabled):hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .action-btn:not(:disabled):active { transform: translateY(0); }
+
+        .action-btn.feed { background: linear-gradient(135deg, #ff6b6b, #ee5a6f); }
+        .action-btn.play { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .action-btn.heal { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .action-btn.water { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .action-btn.sleep { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+        .action-btn.clean { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+
+        .action-label {
+            font-size: 11px;
+            margin-top: 6px;
+            display: block;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* --- Emoji/Particle Animations --- */
+        .emoji {
+            font-size: 24px;
+            position: absolute;
+            animation: float-up 1.5s ease-out forwards;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* NEW Zzz particle for sleep */
+        .zzz-particle {
+            position: absolute;
+            font-size: 20px;
+            font-weight: bold;
+            color: #999;
+            top: 50%;
+            left: 60%; /* Start from right side of head */
+            animation: float-up-zzz 2.5s ease-out forwards;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0.8;
+        }
+        @keyframes float-up-zzz {
+            from {
+                opacity: 0.8;
+                transform: translateY(0) scale(0.8) translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-100px) scale(1.2) translateX(15px);
+            }
+        }
+
+        @keyframes float-up {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to { opacity: 0; transform: translateY(-120px) scale(1.5); }
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: particle-float 2s ease-out forwards;
+            z-index: 5;
+        }
+
+        @keyframes particle-float {
+            from { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+            to { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(360deg); }
+        }
+
+        /* --- Mini Games & Shop --- */
+        .extras-section {
+            padding: 15px 20px;
+            background: #fff;
+            border-top: 3px solid #e9ecef;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .extras-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+        .extra-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+        }
+        .extra-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .extra-btn.shop {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        }
+
+        /* --- Modals --- */
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            padding-top: 60px;
+            animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 25px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            position: relative;
+        }
+        .close-btn {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover, .close-btn:focus {
+            color: black;
+        }
+        .modal-content h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        /* --- Shop Modal --- */
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background: #f9f9f9;
+            border: 1px solid #eee;
+        }
+        .shop-item span {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .buy-btn {
+            background: linear-gradient(135deg, #51cf66, #69db7c);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+        }
+        .buy-btn:hover { background: linear-gradient(135deg, #69db7c, #51cf66); }
+        .buy-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* --- Memory Game Modal --- */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            perspective: 1000px; /* For 3D flip effect */
+        }
+        .memory-card {
+            width: 100%;
+            padding-top: 100%; /* Aspect ratio 1:1 */
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+        }
+        .memory-card.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .memory-card.is-matched {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .memory-card-face {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .memory-card-face.card-front {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            font-size: 50px;
+        }
+        .memory-card-face.card-back {
+            background: #fff;
+            border: 2px solid #f093fb;
+            transform: rotateY(180deg);
+        }
+        #memoryMessage {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+            min-height: 1.2em;
+        }
+        #memoryRestartBtn {
+            width: 100%;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="level-badge">⭐ Lvl <span id="level">1</span></div>
+            <h1>
+                <img src="https://pbs.twimg.com/media/G4x4K1HXAAAPy5X?format=png&name=small" alt="Wobbles Logo" class="header-logo" onerror="this.style.display='none'; document.getElementById('headerEmojiFallback').style.display='inline';">
+                <span id="headerEmojiFallback" class="header-emoji-fallback">🐙</span>
+                 WOBBLES
+            </h1>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-container">
+            <!-- ... stat blocks ... -->
+            <div class="stat">
+                <div class="stat-header">
+                    <span class="stat-label">🍔 Hunger</span>
+                    <span class="stat-value" id="hungerValue">100%</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill hunger-fill" id="hungerBar" style="width: 100%;"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <div class="stat-header">
+                    <span class="stat-label">😊 Happiness</span>
+                    <span class="stat-value" id="happyValue">100%</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill happiness-fill" id="happyBar" style="width: 100%;"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <div class="stat-header">
+                    <span class="stat-label">❤️ Health</span>
+                    <span class="stat-value" id="healthValue">100%</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill health-fill" id="healthBar" style="width: 100%;"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <div class="stat-header">
+                    <span class="stat-label">⚡ Energy</span>
+                    <span class="stat-value" id="energyValue">100%</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill energy-fill" id="energyBar" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pet Area -->
+        <div class="pet-area" id="petArea">
+            <div class="xp-display">✨ XP: <span id="xp">0</span></div>
+            <div class="coins-display" id="coins">💰 0</div>
+            <div class="message" id="message"></div>
+            <div class="status-effect" id="statusIcon"></div>
+            
+            <div class="wobbles-container" id="wobbles" onclick="petWobbles()">
+                <div class="wobbles">
+                    <!-- Accessories (MOVED INSIDE) -->
+                    <div class="wobbles-hat" id="wobblesHat"></div>
+                    <div class="wobbles-glasses" id="wobblesGlasses">
+                        <div class="lens left"></div>
+                        <div class="bridge"></div>
+                        <div class="lens right"></div>
+                    </div>
+                    
+                    <!-- Character -->
+                    <div class="wobbles-body">
+                        <div class="wobbles-shine"></div>
+                        <div class="wobbles-eye left">
+                            <div class="wobbles-eye-shine"></div>
+                        </div>
+                        <div class="wobbles-eye right">
+                            <div class="wobbles-eye-shine"></div>
+                        </div>
+                        <div class="wobbles-cheek left"></div>
+                        <div class="wobbles-cheek right"></div>
+                        <div class="wobbles-mouth" id="wobblesMouth"></div>
+                    </div>
+                    <div class="wobbles-tentacles">
+                        <div class="tentacle"></div>
+                        <div class="tentacle"></div>
+                        <div class="tentacle"></div>
+                        <div class="tentacle"></div>
+                        <div class="tentacle"></div>
+                    </div>
+                    <div class="wobbles-shadow"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <button class="action-btn feed" id="btn-feed" onclick="feedWobbles()">
+                🍕
+                <span class="action-label">Feed</span>
+            </button>
+            <button class="action-btn play" id="btn-play" onclick="playWithWobbles()">
+                ⚽
+                <span class="action-label">Play</span>
+            </button>
+            <button class="action-btn heal" id="btn-heal" onclick="healWobbles()">
+                💊
+                <span class="action-label">Heal</span>
+            </button>
+            <button class="action-btn water" id="btn-water" onclick="giveWater()">
+                💧
+                <span class="action-label">Water</span>
+            </button>
+            <button class="action-btn sleep" id="btn-sleep" onclick="putToSleep()">
+                😴
+                <span class="action-label">Sleep</span>
+            </button>
+            <button class="action-btn clean" id="btn-clean" onclick="cleanWobbles()">
+                🛁
+                <span class="action-label">Clean</span>
+            </button>
+        </div>
+
+        <!-- Extras -->
+        <div class="extras-section">
+            <div class="extras-title">🎁 Extras</div>
+            <button class="extra-btn" onclick="playMiniGame()">🧠 Memory Game</button>
+            <button class="extra-btn shop" onclick="openShop()">🛒 Shop</button>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div id="shopModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeShop()">&times;</span>
+            <h2>🛒 Wobbles Mart 🛒</h2>
+            <div class="shop-item">
+                <span>🎩 Top Hat</span>
+                <button class="buy-btn" id="buyBtnHat" onclick="buyItem('hat', 50)">💰 50</button>
+            </div>
+            <div class="shop-item">
+                <span>😎 Glasses</span>
+                <button class="buy-btn" id="buyBtnGlasses" onclick="buyItem('glasses', 75)">💰 75</button>
+            </div>
+            <div class="shop-item">
+                <span>🍎 Super Food (+50 All)</span>
+                <button class="buy-btn" id="buyBtnFood" onclick="buyItem('food', 30)">💰 30</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Memory Game Modal (NEW) -->
+    <div id="memoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeMemoryGame()">&times;</span>
+            <h2>🧠 Memory Game 🧠</h2>
+            <p id="memoryMessage">Match all the pairs! (Cost: 10 Energy)</p>
+            <div class="memory-grid" id="memoryGrid">
+                <!-- Cards will be generated by JS -->
+            </div>
+            <button class="extra-btn" id="memoryRestartBtn" onclick="startMemoryGame()">Restart Game</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            hunger: 100,
+            happiness: 100,
+            health: 100,
+            energy: 100,
+            coins: 0,
+            xp: 0,
+            level: 1,
+            lastUpdate: Date.now(),
+            petCount: 0,
+            hasHat: false,
+            hasGlasses: false,
+            isSleeping: false,
+            sleepIntervalId: null
+        };
+
+        // DOM Elements
+        const ui = {
+            hungerBar: document.getElementById('hungerBar'),
+            happyBar: document.getElementById('happyBar'),
+            healthBar: document.getElementById('healthBar'),
+            energyBar: document.getElementById('energyBar'),
+            hungerValue: document.getElementById('hungerValue'),
+            happyValue: document.getElementById('happyValue'),
+            healthValue: document.getElementById('healthValue'),
+            energyValue: document.getElementById('energyValue'),
+            coins: document.getElementById('coins'),
+            xp: document.getElementById('xp'),
+            level: document.getElementById('level'),
+            message: document.getElementById('message'),
+            petArea: document.getElementById('petArea'),
+            wobblesMouth: document.getElementById('wobblesMouth'),
+            statusIcon: document.getElementById('statusIcon'),
+            wobblesHat: document.getElementById('wobblesHat'),
+            wobblesGlasses: document.getElementById('wobblesGlasses'),
+            shopModal: document.getElementById('shopModal'),
+            buyBtnHat: document.getElementById('buyBtnHat'),
+            buyBtnGlasses: document.getElementById('buyBtnGlasses'),
+            buyBtnFood: document.getElementById('buyBtnFood'),
+            actionButtons: document.querySelectorAll('.action-btn, .extra-btn'),
+            // Memory Game UI
+            memoryModal: document.getElementById('memoryModal'),
+            memoryGrid: document.getElementById('memoryGrid'),
+            memoryMessage: document.getElementById('memoryMessage'),
+            memoryRestartBtn: document.getElementById('memoryRestartBtn')
+        };
+        
+        // --- Memory Game State ---
+        let memoryGameActive = false;
+        let firstCard = null;
+        let secondCard = null;
+        let lockBoard = false;
+        let pairsMatched = 0;
+        const cardEmojis = ['🍕', '⚽', '💊', '💧', '🛁', '⭐', '🎩', '😎'];
+
+
+        // --- Core Game Logic ---
+
+        // Main game loop
+        function gameLoop() {
+            if (gameState.isSleeping) return; // Pause loop if sleeping
+
+            const now = Date.now();
+            const deltaSeconds = (now - gameState.lastUpdate) / 1000;
+
+            // Stats decrease over time
+            gameState.hunger = Math.max(0, gameState.hunger - deltaSeconds * 0.3);
+            gameState.happiness = Math.max(0, gameState.happiness - deltaSeconds * 0.2);
+            gameState.energy = Math.max(0, gameState.energy - deltaSeconds * 0.1);
+
+            // Health decreases if stats are critical
+            if (gameState.hunger === 0) {
+                gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
+            }
+            if (gameState.happiness === 0) {
+                gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
+            }
+
+            // Game over check
+            if (gameState.health === 0) {
+                showMessage("Oh no! Wobbles fainted! Restarting game...");
+                localStorage.removeItem('wobblesGame');
+                // A full reset would be needed here, for now, we just show a message and reload.
+                setTimeout(() => location.reload(), 2000);
+            }
+
+            gameState.lastUpdate = now;
+            updateUI();
+            saveGame();
+        }
+
+        // Update all UI elements
+        function updateUI() {
+            // Bars
+            ui.hungerBar.style.width = gameState.hunger + '%';
+            ui.happyBar.style.width = gameState.happiness + '%';
+            ui.healthBar.style.width = gameState.health + '%';
+            ui.energyBar.style.width = gameState.energy + '%';
+            
+            // Text Values
+            ui.hungerValue.textContent = Math.round(gameState.hunger) + '%';
+            ui.happyValue.textContent = Math.round(gameState.happiness) + '%';
+            ui.healthValue.textContent = Math.round(gameState.health) + '%';
+            ui.energyValue.textContent = Math.round(gameState.energy) + '%';
+            
+            // Player Stats
+            ui.coins.textContent = '💰 ' + gameState.coins;
+            ui.xp.textContent = gameState.xp;
+            ui.level.textContent = gameState.level;
+            
+            // Pet Expression
+            ui.wobblesMouth.classList.remove('happy', 'sad');
+            if (gameState.happiness > 60) {
+                ui.wobblesMouth.classList.add('happy');
+            } else if (gameState.happiness < 30) {
+                ui.wobblesMouth.classList.add('sad');
+            }
+            
+            // Status Effect Icon
+            let status = '';
+            if (gameState.health < 30) status = '🤢';
+            else if (gameState.hunger < 30) status = '😫';
+            else if (gameState.happiness < 30) status = '😢';
+            else if (gameState.energy < 20) status = '😴';
+            
+            if (status) {
+                ui.statusIcon.textContent = status;
+                ui.statusIcon.classList.add('show');
+            } else {
+                ui.statusIcon.classList.remove('show');
+            }
+
+            // Accessories
+            ui.wobblesHat.style.display = gameState.hasHat ? 'block' : 'none';
+            ui.wobblesGlasses.style.display = gameState.hasGlasses ? 'block' : 'none';
+
+            // Level up check
+            const requiredXP = gameState.level * 100;
+            if (gameState.xp >= requiredXP) {
+                levelUp();
+            }
+        }
+
+        // Level Up
+        function levelUp() {
+            gameState.level++;
+            gameState.xp -= (gameState.level - 1) * 100; // Subtract XP needed for previous level
+            gameState.coins += 100; // Level up bonus
+            showMessage(`🎉 Level Up! You are now Level ${gameState.level}!`);
+            createParticles('⭐', 15);
+        }
+
+        // Save/Load
+        function saveGame() {
+            localStorage.setItem('wobblesGame', JSON.stringify(gameState));
+        }
+
+        function loadGame() {
+            const savedGame = localStorage.getItem('wobblesGame');
+            if (savedGame) {
+                try {
+                    gameState = JSON.parse(savedGame);
+                    // After loading, calculate "offline" progress
+                    const now = Date.now();
+                    const deltaSeconds = (now - gameState.lastUpdate) / 1000;
+                    
+                    if (!gameState.isSleeping) { // Only decay if not sleeping
+                        // Apply offline decay
+                        gameState.hunger = Math.max(0, gameState.hunger - deltaSeconds * 0.3);
+                        gameState.happiness = Math.max(0, gameState.happiness - deltaSeconds * 0.2);
+                        gameState.energy = Math.max(0, gameState.energy - deltaSeconds * 0.1);
+                        if (gameState.hunger === 0) gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
+                        if (gameState.happiness === 0) gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
+                    } else {
+                        // Apply offline REGEN
+                        gameState.energy = Math.min(100, gameState.energy + deltaSeconds * 2);
+                        gameState.health = Math.min(100, gameState.health + deltaSeconds * 0.5);
+                        // Auto-wake if full
+                        if (gameState.energy >= 100) {
+                            gameState.isSleeping = false;
+                        }
+                    }
+
+                    gameState.lastUpdate = now; // Set update time to now
+                    showMessage("Welcome back!");
+
+                    // Ensure sleep state is correct on load
+                    if (gameState.isSleeping) {
+                        document.getElementById('wobbles').classList.add('is-sleeping'); // Add class
+                        setButtonsDisabled(true);
+                        ui.petArea.style.filter = 'brightness(0.3)';
+                        document.getElementById('btn-sleep').disabled = false;
+                        document.getElementById('btn-sleep').innerHTML = '☀️<span class="action-label">Wake Up</span>';
+                        gameState.sleepIntervalId = setInterval(createSleepZzz, 800); // Start particles
+                    }
+
+                } catch(e) {
+                    console.log('Starting new game, corrupted save.');
+                    gameState.lastUpdate = Date.now();
+                }
+            } else {
+                gameState.lastUpdate = Date.now();
+            }
+        }
+
+        // --- UI Helpers ---
+
+        // Show message
+        function showMessage(text) {
+            ui.message.textContent = text;
+            ui.message.classList.add('show');
+            setTimeout(() => ui.message.classList.remove('show'), 2500);
+        }
+
+        // Create floating emoji
+        function createEmoji(emoji) {
+            const emojiEl = document.createElement('div');
+            emojiEl.className = 'emoji';
+            emojiEl.textContent = emoji;
+            emojiEl.style.left = (Math.random() * 70 + 15) + '%';
+            emojiEl.style.top = '45%';
+            ui.petArea.appendChild(emojiEl);
+            setTimeout(() => emojiEl.remove(), 1500);
+        }
+
+        // NEW function for sleep particles
+        function createSleepZzz() {
+            if (!gameState.isSleeping) return; // Stop if woken up
+            const zzzEl = document.createElement('div');
+            zzzEl.className = 'zzz-particle';
+            zzzEl.textContent = 'z';
+            setTimeout(() => { if (gameState.isSleeping) zzzEl.textContent = 'Zz'; }, 500);
+            setTimeout(() => { if (gameState.isSleeping) zzzEl.textContent = 'Zzz'; }, 1000);
+            
+            zzzEl.style.left = (Math.random() * 30 + 55) + '%'; // Start from head area
+            zzzEl.style.top = '40%';
+            ui.petArea.appendChild(zzzEl);
+            setTimeout(() => zzzEl.remove(), 2500);
+        }
+
+        // Create particles
+        function createParticles(emoji, count) {
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.textContent = emoji;
+                    particle.style.left = '50%';
+                    particle.style.top = '50%';
+                    particle.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                    particle.style.setProperty('--tx', (Math.random() * 200 - 100) + 'px');
+                    particle.style.setProperty('--ty', (Math.random() * 200 - 100) + 'px');
+                    ui.petArea.appendChild(particle);
+                    setTimeout(() => particle.remove(), 2000);
+                }, i * 50);
+            }
+        }
+
+        // Disable/Enable all buttons
+        function setButtonsDisabled(disabled) {
+            ui.actionButtons.forEach(btn => {
+                btn.disabled = disabled;
+            });
+        }
+        
+        // --- Pet Actions ---
+
+        function feedWobbles() {
+            if (gameState.hunger < 100) {
+                gameState.hunger = Math.min(100, gameState.hunger + 25);
+                gameState.energy = Math.min(100, gameState.energy + 10);
+                gameState.coins += 8;
+                gameState.xp += 10;
+                showMessage('Yum yum! 🍕 That was delicious!');
+                createEmoji('🍕');
+                createParticles('✨', 5);
+                updateUI();
+            } else {
+                showMessage("I'm full! 😊");
+            }
+        }
+
+        function playWithWobbles() {
+            if (gameState.energy > 20) {
+                gameState.happiness = Math.min(100, gameState.happiness + 30);
+                gameState.hunger = Math.max(0, gameState.hunger - 15);
+                gameState.energy = Math.max(0, gameState.energy - 20);
+                gameState.coins += 15;
+                gameState.xp += 20;
+                showMessage('Woohoo! 🎉 That was so much fun!');
+                createEmoji('⚽');
+                createParticles('🎈', 8);
+                updateUI();
+            } else {
+                showMessage("I'm too tired to play! 😴");
+            }
+        }
+
+        function healWobbles() {
+            if (gameState.health < 100) {
+                gameState.health = Math.min(100, gameState.health + 35);
+                gameState.coins += 10;
+                gameState.xp += 15;
+                showMessage('I feel so much better! 💚');
+                createEmoji('💊');
+                createParticles('💚', 6);
+                updateUI();
+            } else {
+                showMessage("I'm already perfectly healthy! 💪");
+            }
+        }
+
+        function giveWater() {
+            gameState.hunger = Math.min(100, gameState.hunger + 10);
+            gameState.health = Math.min(100, gameState.health + 5);
+            gameState.energy = Math.min(100, gameState.energy + 5);
+            gameState.coins += 5;
+            gameState.xp += 8;
+            showMessage('Aaah, refreshing! 💧');
+            createEmoji('💧');
+            createParticles('💦', 5);
+            updateUI();
+        }
+
+        // Unified Sleep/Wake function
+        function putToSleep() {
+            if (gameState.isSleeping) {
+                // --- WAKE UP ---
+                wakeUp();
+            } else {
+                // --- GO TO SLEEP ---
+                if (gameState.energy < 90) {
+                    gameState.isSleeping = true;
+                    document.getElementById('wobbles').classList.add('is-sleeping'); // Add class for CSS
+                    showMessage('Zzz... Wobbles is taking a nap... 😴💤');
+                    createEmoji('💤');
+                    setButtonsDisabled(true);
+                    ui.petArea.style.filter = 'brightness(0.3)';
+                    document.getElementById('btn-sleep').disabled = false; // Keep sleep button active to wake up
+                    document.getElementById('btn-sleep').innerHTML = '☀️<span class="action-label">Wake Up</span>';
+                    
+                    // Start Zzz particles
+                    gameState.sleepIntervalId = setInterval(createSleepZzz, 800); 
+
+                    // Regenerate stats while sleeping
+                    const sleepInterval = setInterval(() => {
+                        if (!gameState.isSleeping) {
+                            clearInterval(sleepInterval);
+                            return;
+                        }
+                        gameState.energy = Math.min(100, gameState.energy + 2);
+                        gameState.health = Math.min(100, gameState.health + 0.5);
+                        if (gameState.energy === 100) { // Auto-wake
+                            wakeUp();
+                        }
+                        updateUI();
+                    }, 200);
+
+                } else {
+                    showMessage("I'm not tired! ⚡");
+                }
+            }
+        }
+        
+        function wakeUp() {
+            gameState.isSleeping = false;
+            document.getElementById('wobbles').classList.remove('is-sleeping'); // Remove class
+            if (gameState.sleepIntervalId) {
+                clearInterval(gameState.sleepIntervalId);
+                gameState.sleepIntervalId = null;
+            }
+            showMessage('Yawn! That was a great nap! ☀️');
+            setButtonsDisabled(false);
+            ui.petArea.style.filter = 'brightness(1)';
+            document.getElementById('btn-sleep').innerHTML = '😴<span class="action-label">Sleep</span>';
+            updateUI();
+        }
+
+        function cleanWobbles() {
+            gameState.health = Math.min(100, gameState.health + 15);
+            gameState.happiness = Math.min(100, gameState.happiness + 10);
+            gameState.coins += 8;
+            gameState.xp += 12;
+            showMessage('So clean and sparkly! ✨🛁');
+            createEmoji('✨');
+            createParticles('🧼', 6);
+            updateUI();
+        }
+
+        function petWobbles() {
+            if (gameState.isSleeping) {
+                showMessage("Shh... Wobbles is sleeping. 🤫");
+                return;
+            }
+            gameState.happiness = Math.min(100, gameState.happiness + 3);
+            gameState.coins += 2;
+            gameState.xp += 3;
+            gameState.petCount++;
+            
+            const messages = [
+                'Hehe! That tickles! 🥰',
+                'I love pats! ❤️',
+                'More! More! 😍',
+                'That feels so good! 💕',
+                "You're the best! 🌟"
+            ];
+            
+            showMessage(messages[Math.floor(Math.random() * messages.length)]);
+            createEmoji('❤️');
+            updateUI();
+        }
+
+        // --- Extras ---
+
+        function playMiniGame() {
+            if (gameState.energy < 10) {
+                showMessage("I'm too tired for games! 😴 (Needs 10 Energy)");
+                return;
+            }
+            if (memoryGameActive) {
+                ui.memoryModal.style.display = 'block'; // Re-open if already active
+                return;
+            }
+            
+            gameState.energy = Math.max(0, gameState.energy - 10);
+            updateUI();
+            
+            ui.memoryModal.style.display = 'block';
+            startMemoryGame();
+        }
+
+        function startMemoryGame() {
+            memoryGameActive = true;
+            pairsMatched = 0;
+            lockBoard = false;
+            firstCard = null;
+            secondCard = null;
+            ui.memoryMessage.textContent = "Match all the pairs! (Cost: 10 Energy)";
+            ui.memoryGrid.innerHTML = ''; // Clear old grid
+
+            let cards = [...cardEmojis, ...cardEmojis];
+            cards.sort(() => 0.5 - Math.random()); // Shuffle cards
+
+            cards.forEach(emoji => {
+                const card = document.createElement('div');
+                card.classList.add('memory-card');
+                card.dataset.emoji = emoji;
+
+                card.innerHTML = `
+                    <div class="memory-card-face card-front">?</div>
+                    <div class="memory-card-face card-back">${emoji}</div>
+                `;
+
+                card.addEventListener('click', flipCard);
+                ui.memoryGrid.appendChild(card);
+            });
+        }
+
+        function closeMemoryGame() {
+            ui.memoryModal.style.display = 'none';
+            if (memoryGameActive) {
+                showMessage("Memory Game cancelled.");
+                memoryGameActive = false;
+            }
+        }
+
+        function flipCard(e) {
+            const clickedCard = e.currentTarget;
+            if (lockBoard || clickedCard === firstCard || clickedCard.classList.contains('is-matched')) return;
+
+            clickedCard.classList.add('is-flipped');
+
+            if (!firstCard) {
+                firstCard = clickedCard;
+                return;
+            }
+
+            secondCard = clickedCard;
+            lockBoard = true;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            let isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
+            isMatch ? disableCards() : unflipCards();
+        }
+
+        function disableCards() {
+            firstCard.classList.add('is-matched');
+            secondCard.classList.add('is-matched');
+            
+            pairsMatched++;
+            if (pairsMatched === cardEmojis.length) {
+                // --- GAME WON ---
+                memoryGameActive = false;
+                let coinsWon = Math.floor(Math.random() * 50) + 25;
+                let xpWon = 50;
+                gameState.coins += coinsWon;
+                gameState.xp += xpWon;
+                ui.memoryMessage.textContent = `You won! +💰${coinsWon} & +✨${xpWon} XP!`;
+                createParticles('🎉', 10);
+                updateUI();
+            }
+            
+            resetBoard();
+        }
+
+        function unflipCards() {
+            setTimeout(() => {
+                firstCard.classList.remove('is-flipped');
+                secondCard.classList.remove('is-flipped');
+                resetBoard();
+            }, 1000);
+        }
+
+        function resetBoard() {
+            [firstCard, secondCard, lockBoard] = [null, null, false];
+        }
+
+
+        function openShop() {
+            // Update button states based on coins/purchases
+            ui.buyBtnHat.disabled = gameState.coins < 50 || gameState.hasHat;
+            ui.buyBtnHat.textContent = gameState.hasHat ? 'Owned' : '💰 50';
+            
+            ui.buyBtnGlasses.disabled = gameState.coins < 75 || gameState.hasGlasses;
+            ui.buyBtnGlasses.textContent = gameState.hasGlasses ? 'Owned' : '💰 75';
+
+            ui.buyBtnFood.disabled = gameState.coins < 30;
+
+            ui.shopModal.style.display = 'block';
+        }
+
+        function closeShop() {
+            ui.shopModal.style.display = 'none';
+        }
+
+        function buyItem(item, cost) {
+            if (gameState.coins < cost) {
+                showMessage("Not enough coins! 😢");
+                return;
+            }
+            
+            gameState.coins -= cost;
+            
+            if (item === 'hat') {
+                gameState.hasHat = true;
+                showMessage("Wow, a new hat! 🎩");
+                createParticles('🎩', 5);
+            } else if (item === 'glasses') {
+                gameState.hasGlasses = true;
+                showMessage("Looking cool! 😎");
+                createParticles('😎', 5);
+            } else if (item === 'food') {
+                gameState.hunger = Math.min(100, gameState.hunger + 50);
+                gameState.happiness = Math.min(100, gameState.happiness + 50);
+                gameState.health = Math.min(100, gameState.health + 50);
+                gameState.energy = Math.min(100, gameState.energy + 50);
+                showMessage("That was a SUPER meal! 🍎✨");
+                createParticles('🍎', 10);
+            }
+            
+            updateUI();
+            closeShop();
+        }
+
+
+        // --- Initialize Game ---
+        function init() {
+            loadGame(); // Load save and apply offline progress
+            updateUI(); // Initial UI sync
+            setInterval(gameLoop, 1000); // Start the live game loop
+        }
+
+        // Start the game when the page loads
+        window.onload = init;
+
+    </script>
+</body>
+</html>
+
+
