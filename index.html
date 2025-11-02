@@ -24,7 +24,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Changed from center */
             min-height: 100vh;
             padding: 0;
             -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
@@ -32,12 +32,15 @@
 
         .game-container {
             background: white;
-            border-radius: 25px;
-            box-shadow: 0 25px 70px rgba(0,0,0,0.4);
+            border-radius: 0; /* Changed from 25px */
+            box-shadow: none; /* Changed from 0 25px 70px rgba(0,0,0,0.4) */
             max-width: 450px;
             width: 100%;
             overflow: hidden;
             position: relative;
+            min-height: 100vh; /* Added */
+            display: flex; /* Added */
+            flex-direction: column; /* Added */
         }
 
         /* --- Header --- */
@@ -908,6 +911,18 @@
             to { top: 300px; } /* Fall to bottom */
         }
         
+        /* Media query for desktop/large screens */
+        @media (min-width: 451px) {
+            body {
+                align-items: center; /* Restore centering */
+                padding: 20px; /* Restore padding */
+            }
+            .game-container {
+                min-height: auto; /* Reset min-height */
+                border-radius: 25px; /* Restore border-radius */
+                box-shadow: 0 25px 70px rgba(0,0,0,0.4); /* Restore shadow */
+            }
+        }
 
     </style>
 </head>
@@ -1962,6 +1977,7 @@
             loadGame(); // Load save and apply offline progress / migration
             updateUI(); // Initial UI sync
             setInterval(gameLoop, 1000); // Start the live game loop
+            registerPWA(); // <-- ADDED THIS CALL
         }
 
         // Start the game when the page loads
@@ -2092,5 +2108,6 @@
     </script>
 </body>
 </html>
+
 
 
