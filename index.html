@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#4facfe"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -26,7 +26,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 0;
             -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
         }
 
@@ -1635,6 +1635,10 @@
                 `;
 
                 card.addEventListener('click', flipCard);
+                card.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    flipCard(e); // Pass the event object
+                });
                 ui.memoryGrid.appendChild(card);
             });
         }
@@ -1769,7 +1773,11 @@
             const fallSpeed = (Math.random() * 1.5 + 1.5) + 's'; // 1.5s to 3s
             fruit.style.animation = `fall ${fallSpeed} linear forwards`;
 
-            fruit.onclick = () => fruitClicked(fruit);
+            fruit.addEventListener('click', () => fruitClicked(fruit));
+            fruit.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevents click firing as well
+                fruitClicked(fruit);
+            });
             fruit.addEventListener('animationend', () => fruitMissed(fruit));
 
             ui.reactionArea.appendChild(fruit);
@@ -2084,4 +2092,5 @@
     </script>
 </body>
 </html>
+
 
