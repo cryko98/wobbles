@@ -24,25 +24,25 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Changed from center */
+            align-items: flex-start; /* Default for mobile */
             min-height: 100vh;
-            height: 100vh; /* Added */
-            overflow-y: hidden; /* Added */
+            /* REMOVED height: 100vh and overflow-y: hidden */
             padding: 0;
             -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
         }
 
         .game-container {
             background: white;
-            border-radius: 0; /* Changed from 25px */
-            box-shadow: none; /* Changed from 0 25px 70px rgba(0,0,0,0.4) */
-            max-width: 450px;
+            border-radius: 0; /* Default for mobile */
+            box-shadow: none; /* Default for mobile */
+            max-width: 450px; /* Keep max-width for consistency */
             width: 100%;
-            overflow-y: hidden; /* Changed from overflow: hidden */
+            overflow-y: hidden; /* This just hides internal overflow, not body scroll */
             position: relative;
-            height: 100vh; /* Changed from min-height: 100vh */
-            display: flex; /* Added */
-            flex-direction: column; /* Added */
+            /* REMOVED height: 100vh */
+            min-height: 100vh; /* Make sure background fills at least screen height */
+            display: flex;
+            flex-direction: column;
         }
 
         /* --- Header --- */
@@ -162,11 +162,11 @@
 
         /* --- Pet Area --- */
         .pet-area {
-            padding: 10px 20px; /* Changed from 30px 20px */
+            padding: 10px 20px;
             text-align: center;
             background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
-            flex: 1; /* Changed from min-height: 380px */
-            min-height: 0; /* Added to allow shrinking */
+            flex: 0 1 auto; /* Changed from flex: 1 */
+            min-height: 350px; /* Restored min-height */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -240,7 +240,7 @@
             position: relative;
             cursor: pointer;
             transition: transform 0.2s;
-            /* margin-top: 20px; */ /* Removed */
+            margin-top: 20px; /* Restored margin for spacing */
             z-index: 1;
         }
         .wobbles-container:active { transform: scale(0.95); }
@@ -919,25 +919,24 @@
             body {
                 align-items: center; /* Restore centering */
                 padding: 20px; /* Restore padding */
-                height: auto; /* Reset body height */
-                overflow-y: auto; /* Restore scrolling */
+                /* height: auto; - Already default */
+                /* overflow-y: auto; - Already default */
             }
             .game-container {
-                height: auto; /* Reset container height */
+                /* height: auto; - Already default */
                 min-height: auto; /* Reset min-height */
                 border-radius: 25px; /* Restore border-radius */
                 box-shadow: 0 25px 70px rgba(0,0,0,0.4); /* Restore shadow */
-                overflow-y: hidden; /* Still hide overflow on desktop container */
             }
 
             .pet-area {
-                flex: 0 1 auto; /* Reset flex */
-                min-height: 380px; /* Restore min-height for desktop */
+                /* flex: 0 1 auto; - Already set */
+                min-height: 380px; /* Restore desktop min-height */
                 padding: 30px 20px; /* Restore padding for desktop */
             }
 
             .wobbles-container {
-                margin-top: 20px; /* Restore margin for desktop */
+                margin-top: 20px; /* Already set, but good for clarity */
             }
         }
 
@@ -2125,6 +2124,7 @@
     </script>
 </body>
 </html>
+
 
 
 
