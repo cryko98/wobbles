@@ -19,15 +19,17 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            height: 100%; /* Ensure full height for mobile */
+            overflow: hidden; /* Prevent body scrolling */
+        }
+
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             justify-content: center;
             align-items: flex-start; /* Default for mobile */
-            min-height: 100vh;
-            /* REMOVED height: 100vh and overflow-y: hidden */
-            padding: 0;
             -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
         }
 
@@ -37,10 +39,9 @@
             box-shadow: none; /* Default for mobile */
             max-width: 450px; /* Keep max-width for consistency */
             width: 100%;
-            overflow-y: hidden; /* This just hides internal overflow, not body scroll */
+            overflow: hidden; /* No scrolling in the container */
             position: relative;
-            /* REMOVED height: 100vh */
-            min-height: 100vh; /* Make sure background fills at least screen height */
+            height: 100%; /* Full height */
             display: flex;
             flex-direction: column;
         }
@@ -52,6 +53,7 @@
             text-align: center;
             color: white;
             position: relative;
+            flex-shrink: 0;
         }
 
         .header h1 {
@@ -98,6 +100,7 @@
             padding: 20px;
             background: #f8f9fa;
             border-bottom: 3px solid #e9ecef;
+            flex-shrink: 0;
         }
 
         .stat {
@@ -165,15 +168,32 @@
             padding: 10px 20px;
             text-align: center;
             background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
-            flex: 0 1 auto; /* Changed from flex: 1 */
-            min-height: 350px; /* Restored min-height */
+            flex: 1 1 auto; /* Allow pet-area to grow and shrink */
+            min-height: 300px; /* Reduced min-height */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             position: relative;
             overflow: hidden;
-            transition: filter 0.5s;
+            transition: filter 0.5s, background 0.5s ease;
+        }
+        
+        /* Background Styles */
+        .pet-area.bg-beach {
+            background-image: linear-gradient(to bottom, #87ceeb, #f0e68c);
+        }
+        .pet-area.bg-space {
+            background-image: linear-gradient(to bottom, #000033, #330066);
+        }
+        .pet-area.bg-forest {
+            background-image: linear-gradient(to bottom, #90ee90, #228b22);
+        }
+        .pet-area.bg-volcano {
+            background-image: linear-gradient(to bottom, #ff8c00, #d2691e);
+        }
+        .pet-area.bg-winter {
+            background-image: linear-gradient(to bottom, #ffffff, #b0e0e6);
         }
 
         .coins-display, .xp-display {
@@ -239,11 +259,14 @@
         .wobbles-container {
             position: relative;
             cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 20px; /* Restored margin for spacing */
+            margin-top: 20px; 
             z-index: 1;
+            transform: scale(var(--pet-scale, 1.0));
+            transition: transform 0.5s ease;
         }
-        .wobbles-container:active { transform: scale(0.95); }
+        .wobbles-container:active { 
+            transform: scale(calc(var(--pet-scale, 1.0) * 0.95)); 
+        }
 
         .wobbles {
             width: 180px;
@@ -268,6 +291,7 @@
             animation: pulse-body 2s ease-in-out infinite;
             box-shadow: inset -10px -10px 20px rgba(0,0,0,0.1),
                         inset 10px 10px 20px rgba(255,255,255,0.3);
+            z-index: 2;
         }
 
         @keyframes pulse-body {
@@ -300,12 +324,12 @@
         .wobbles-eye.right { right: 45px; }
 
         .wobbles.is-sleeping .wobbles-eye {
-            height: 6px; /* Make it a thin line */
-            top: 50px; /* Reposition vertically */
-            background: #333; /* Use a solid color */
-            border-radius: 3px; /* Slightly rounded line */
-            box-shadow: none; /* Remove inset shadow */
-            animation: none; /* Stop blinking */
+            height: 6px;
+            top: 50px;
+            background: #333;
+            border-radius: 3px;
+            box-shadow: none;
+            animation: none;
         }
 
         @keyframes blink {
@@ -324,7 +348,7 @@
         }
 
         .wobbles.is-sleeping .wobbles-eye-shine {
-            display: none; /* Hide shine */
+            display: none;
         }
 
         .wobbles-cheek {
@@ -416,14 +440,11 @@
         }
 
         /* --- Accessories (Positions Fixed) --- */
-        /* Wobbles body top edge is at 60px from .wobbles top */
-        /* Wobbles eyes are at 95px from .wobbles top */
-        
         .wobbles-hat {
             width: 80px;
             height: 60px;
             position: absolute;
-            top: 25px; /* Sits just above body top */
+            top: 25px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -458,7 +479,7 @@
             border-right: 35px solid transparent;
             border-bottom: 60px solid #f76379;
             position: absolute;
-            top: 25px; /* Sits just above body top */
+            top: 25px;
             left: 50%;
             transform: translateX(-50%) rotate(-5deg);
             z-index: 10;
@@ -471,13 +492,85 @@
             background: #f9d71c;
             border-radius: 50%;
             position: absolute;
-            top: -70px; /* Relative to top of triangle */
+            top: -70px;
             left: -6px;
+        }
+        
+        /* CROWN FIX: Replaced with better CSS */
+        .wobbles-crown {
+            width: 70px;
+            height: 40px;
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: none;
+        }
+        .wobbles-crown-base {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 70px;
+            height: 10px;
+            background: linear-gradient(#ffd700, #f0c000);
+            border: 2px solid #b8860b;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .wobbles-crown-prong {
+            position: absolute;
+            bottom: 8px;
+            width: 10px;
+            height: 25px;
+            background: #ffd700;
+            border: 2px solid #b8860b;
+            border-bottom: none;
+            border-radius: 3px 3px 0 0;
+        }
+        .wobbles-crown-prong.left {
+            left: 10px;
+            transform: rotate(-15deg);
+        }
+        .wobbles-crown-prong.center {
+            left: 50%;
+            transform: translateX(-50%);
+            height: 30px;
+        }
+        .wobbles-crown-prong.right {
+            right: 10px;
+            transform: rotate(15deg);
+        }
+        .wobbles-crown-prong.center::after { /* Gem */
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #ff4136;
+            border-radius: 50%;
+            border: 1px solid #a00;
+        }
+
+        .wobbles-cape {
+            width: 100px;
+            height: 100px;
+            background: #d10000;
+            border: 3px solid #a00000;
+            position: absolute;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            border-radius: 0 0 50% 50% / 0 0 30% 30%;
+            display: none;
         }
 
         .wobbles-glasses {
             position: absolute;
-            top: 95px; /* Sits over eyes */
+            top: 95px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -503,11 +596,9 @@
             top: 18px;
         }
 
-        /* Wobbles body bottom is at 180px from .wobbles top */
-        /* Wobbles mouth is at 155px from .wobbles top (180 - 25) */
         .wobbles-bowtie {
             position: absolute;
-            bottom: 15px; /* Sits below mouth (mouth is at ~25px from bottom) */
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -522,17 +613,35 @@
             border-top-width: 10px;
             border-bottom-width: 10px;
         }
-        .wobbles-bowtie::before { /* Left side */
+        .wobbles-bowtie::before {
             border-right: 10px solid transparent;
             border-left-color: #e17055;
             left: -15px;
             border-radius: 5px 0 0 5px;
         }
-        .wobbles-bowtie::after { /* Right side */
+        .wobbles-bowtie::after {
             border-left: 10px solid transparent;
             border-right-color: #e17055;
             left: 5px;
             border-radius: 0 5px 5px 0;
+        }
+        
+        .quest-display {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            border: 2px solid #ffd700;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 5;
+            display: none;
+            white-space: nowrap;
         }
 
         /* --- Action Buttons --- */
@@ -542,6 +651,9 @@
             gap: 12px;
             padding: 20px;
             background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
         }
 
         .action-btn {
@@ -556,7 +668,7 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.25);
             position: relative;
             overflow: hidden;
-            -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+            -webkit-tap-highlight-color: transparent;
         }
         .action-btn:disabled {
             filter: grayscale(80%);
@@ -605,14 +717,13 @@
             z-index: 5;
         }
 
-        /* NEW Zzz particle for sleep */
         .zzz-particle {
             position: absolute;
             font-size: 20px;
             font-weight: bold;
             color: #999;
             top: 50%;
-            left: 60%; /* Start from right side of head */
+            left: 60%;
             animation: float-up-zzz 2.5s ease-out forwards;
             pointer-events: none;
             z-index: 5;
@@ -645,51 +756,64 @@
             from { opacity: 1; transform: translate(0, 0) rotate(0deg); }
             to { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(360deg); }
         }
-
-        /* --- Mini Games & Shop --- */
-        .extras-section {
-            padding: 15px 20px;
-            background: #fff;
-            border-top: 3px solid #e9ecef;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* Changed */
+        
+        /* NEW: Side Action Containers */
+        .side-actions-left, .side-actions-right {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
             gap: 10px;
+            z-index: 5;
         }
-        .extras-title {
-            font-size: 14px;
-            font-weight: bold;
+        .side-actions-left { left: 15px; }
+        .side-actions-right { right: 15px; }
+
+        /* NEW: Base Side Action Button Style */
+        .side-action-btn {
+            background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.5));
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255,255,255,0.9);
             color: #333;
-            margin-bottom: 10px;
-            text-align: center;
-            grid-column: 1 / -1;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 28px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
-        .extra-btn {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        .side-action-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        .side-action-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* MODIFIED: Daily Reward Button */
+        #dailyRewardBtn {
+            position: relative; /* No longer absolute */
+            top: auto;
+            left: auto;
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); /* Keep special color */
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 15px;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: all 0.3s;
-            -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+            /* width, height, font-size, etc. all come from .side-action-btn */
+            display: none; /* Hidden by default */
+            animation: pulse-reward 1.5s infinite;
         }
-        .extra-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+
+        @keyframes pulse-reward {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
-        .extra-btn.shop {
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-        }
-        .extra-btn.wardrobe { /* New Style */
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            color: #333;
-        }
-        .extra-btn.reaction { /* New Style */
-            background: linear-gradient(135deg, #51cf66, #69db7c);
+
+        /* JAVÍTÁS: Az "Extras" sáv ALAPÉRTELMEZETTEN elrejtése */
+        .extras-section {
+            display: none;
         }
 
 
@@ -704,12 +828,14 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0,0,0,0.6);
-            padding-top: 60px;
+            backdrop-filter: blur(5px);
+            padding-top: 20px;
+            padding-bottom: 20px;
             animation: fadeIn 0.3s;
         }
         .modal-content {
             background-color: #fefefe;
-            margin: 5% auto;
+            margin: 0 auto;
             padding: 25px;
             border: 1px solid #888;
             width: 90%;
@@ -735,32 +861,54 @@
             margin-bottom: 20px;
             color: #333;
         }
+        .modal-subtitle {
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
 
-        /* --- Shop Modal --- */
+        /* --- Shop Modal (REFACTORED) --- */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+        }
         .shop-item {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            padding: 15px;
-            margin-bottom: 10px;
+            padding: 15px 10px;
+            margin-bottom: 0;
             border-radius: 10px;
             background: #f9f9f9;
             border: 1px solid #eee;
         }
+        .shop-item-icon {
+            font-size: 40px;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
         .shop-item span {
-            font-size: 18px;
+            font-size: 13px;
             font-weight: bold;
+            text-align: center;
         }
         .buy-btn {
             background: linear-gradient(135deg, #51cf66, #69db7c);
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 8px 15px;
+            margin-top: 10px;
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.2s;
-            -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+            -webkit-tap-highlight-color: transparent;
         }
         .buy-btn:hover { background: linear-gradient(135deg, #69db7c, #51cf66); }
         .buy-btn:disabled {
@@ -772,6 +920,31 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+        
+        /* NEW: Button style for games modal */
+        .modal-content .extra-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            -webkit-tap-highlight-color: transparent;
+            /* Alap stílus (Memória Játék) */
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .modal-content .extra-btn.reaction {
+             background: linear-gradient(135deg, #51cf66, #69db7c);
+        }
+        .modal-content .extra-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
 
         /* --- Memory Game Modal --- */
         .memory-grid {
@@ -779,16 +952,16 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin: 20px 0;
-            perspective: 1000px; /* For 3D flip effect */
+            perspective: 1000px;
         }
         .memory-card {
             width: 100%;
-            padding-top: 100%; /* Aspect ratio 1:1 */
+            padding-top: 100%;
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.6s;
             cursor: pointer;
-            -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+            -webkit-tap-highlight-color: transparent;
         }
         .memory-card.is-flipped {
             transform: rotateY(180deg);
@@ -832,38 +1005,55 @@
             width: 100%;
             margin-top: 10px;
             background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
         }
 
-        /* --- Wardrobe Modal (NEW) --- */
+        /* --- Wardrobe Modal (REFACTORED) --- */
+        .wardrobe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+        }
         .wardrobe-item {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            padding: 15px;
-            margin-bottom: 10px;
+            padding: 15px 10px;
+            margin-bottom: 0;
             border-radius: 10px;
             background: #f9f9f9;
-            border: 1px solid #eee;
+            border: 2px solid #eee;
+        }
+        .wardrobe-item-icon {
+            font-size: 40px;
+            line-height: 1;
+            margin-bottom: 10px;
         }
         .wardrobe-item span {
-            font-size: 18px;
+            font-size: 13px;
             font-weight: bold;
-        }
-        .wardrobe-item-status {
-            font-size: 16px;
-            font-weight: bold;
-            color: #888;
+            text-align: center;
         }
         .toggle-btn {
             background: linear-gradient(135deg, #51cf66, #69db7c);
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 8px 15px;
+            margin-top: 10px;
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.2s;
-            min-width: 100px;
+            min-width: 80px;
+            text-align: center;
         }
         .toggle-btn.is-equipped {
             background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
@@ -871,6 +1061,10 @@
         .toggle-btn:disabled {
             background: #ccc;
             cursor: not-allowed;
+        }
+        .wardrobe-item.is-equipped {
+            border-color: #51cf66;
+            box-shadow: 0 0 10px rgba(81, 207, 102, 0.5);
         }
 
         /* --- Reaction Game Modal (UPDATED) --- */
@@ -883,18 +1077,25 @@
             overflow: hidden;
             border: 3px solid #dcdcdc;
         }
-        /* Changed from ID to class */
         .reaction-fruit-item {
             font-size: 50px;
             position: absolute;
-            top: -60px; /* Start above screen */
+            top: -60px;
             cursor: pointer;
         }
         #reactionStartBtn {
             width: 100%;
             background: linear-gradient(135deg, #51cf66, #69db7c);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
         }
-        /* Updated message */
         #reactionMessage {
             text-align: center;
             margin-bottom: 10px;
@@ -911,34 +1112,40 @@
         }
         @keyframes fall {
             from { top: -60px; }
-            to { top: 300px; } /* Fall to bottom */
+            to { top: 300px; }
         }
         
         /* Media query for desktop/large screens */
         @media (min-width: 451px) {
             body {
-                align-items: center; /* Restore centering */
-                padding: 20px; /* Restore padding */
-                /* height: auto; - Already default */
-                /* overflow-y: auto; - Already default */
+                align-items: center;
+                padding: 20px;
+                height: auto; /* Allow body to be auto height */
+                overflow: auto; /* Allow body scrolling */
             }
             .game-container {
-                /* height: auto; - Already default */
-                min-height: auto; /* Reset min-height */
-                border-radius: 25px; /* Restore border-radius */
-                box-shadow: 0 25px 70px rgba(0,0,0,0.4); /* Restore shadow */
+                min-height: auto;
+                height: auto; /* Auto height on desktop */
+                border-radius: 25px;
+                box-shadow: 0 25px 70px rgba(0,0,0,0.4);
+                overflow: hidden; /* Hide overflow on desktop too */
             }
 
             .pet-area {
-                /* flex: 0 1 auto; - Already set */
-                min-height: 380px; /* Restore desktop min-height */
-                padding: 30px 20px; /* Restore padding for desktop */
+                flex: 0 1 auto;
+                min-height: 380px;
+                padding: 30px 20px;
             }
 
             .wobbles-container {
-                margin-top: 20px; /* Already set, but good for clarity */
+                margin-top: 20px;
             }
+            
+            /* JAVÍTÁS: TÖRLÖLVE az oldalsó gombokat elrejtő szabályok */
+            /* JAVÍTÁS: TÖRLÖLVE az alsó sávot megjelenítő szabály */
         }
+        
+        /* JAVÍTÁS: TÖRLÖLVE a max-width: 450px media query, mert felesleges */
 
     </style>
 </head>
@@ -1001,11 +1208,31 @@
             <div class="message" id="message"></div>
             <div class="status-effect" id="statusIcon"></div>
             
+            <!-- NEW: Side Action Buttons -->
+            <div class="side-actions-left">
+                <!-- Daily Reward Button MOVED here -->
+                <button id="dailyRewardBtn" class="side-action-btn" onclick="claimDailyReward()">🎁</button>
+            </div>
+            <div class="side-actions-right">
+                <button class="side-action-btn" onclick="openShop()">🛒</button>
+                <button class="side-action-btn" onclick="openWardrobe()">👚</button>
+                <button class="side-action-btn" onclick="openGamesModal()">🎮</button> 
+            </div>
+            
             <div class="wobbles-container" id="wobbles" onclick="petWobbles()">
                 <div class="wobbles">
+                    <div class="wobbles-cape" id="wobblesCape"></div>
+                    
                     <!-- Accessories -->
                     <div class="wobbles-hat" id="wobblesHat"></div>
                     <div class="wobbles-party-hat" id="wobblesPartyHat"></div>
+                    <!-- CROWN FIX: New HTML Structure -->
+                    <div class="wobbles-crown" id="wobblesCrown">
+                        <div class="wobbles-crown-prong left"></div>
+                        <div class="wobbles-crown-prong center"></div>
+                        <div class="wobbles-crown-prong right"></div>
+                        <div class="wobbles-crown-base"></div>
+                    </div>
                     <div class="wobbles-glasses" id="wobblesGlasses">
                         <div class="lens left"></div>
                         <div class="bridge"></div>
@@ -1036,6 +1263,8 @@
                     <div class="wobbles-shadow"></div>
                 </div>
             </div>
+            
+            <div class="quest-display" id="questDisplay">Quest: Loading...</div>
         </div>
 
         <!-- Actions -->
@@ -1066,7 +1295,7 @@
             </button>
         </div>
 
-        <!-- Extras -->
+        <!-- Extras (REMOVED from mobile, visible on desktop) -->
         <div class="extras-section">
             <div class="extras-title">🎁 Extras</div>
             <button class="extra-btn" onclick="openMemoryGame()">🧠 Memory Game</button>
@@ -1081,24 +1310,21 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeShop()">&times;</span>
             <h2>🛒 Wobbles Mart 🛒</h2>
-            <div class="shop-item">
-                <span>🎩 Top Hat</span>
-                <button class="buy-btn" id="buyBtnTopHat" onclick="buyItem('tophat', 50)">💰 50</button>
+            
+            <div class="modal-subtitle">Accessories</div>
+            <div class="shop-grid" id="shopAccessoryGrid">
+                <!-- Dinamikusan generált tartalom -->
             </div>
-            <div class="shop-item">
-                <span>🎉 Party Hat</span>
-                <button class="buy-btn" id="buyBtnPartyHat" onclick="buyItem('partyhat', 60)">💰 60</button>
+            
+            <div class="modal-subtitle">Backgrounds</div>
+            <div class="shop-grid" id="shopBackgroundGrid">
+                <!-- Dinamikusan generált tartalom -->
             </div>
+
+            <div class="modal-subtitle">Consumables</div>
             <div class="shop-item">
-                <span>😎 Glasses</span>
-                <button class="buy-btn" id="buyBtnGlasses" onclick="buyItem('glasses', 75)">💰 75</button>
-            </div>
-            <div class="shop-item">
-                <span>🎀 Bowtie</span>
-                <button class="buy-btn" id="buyBtnBowtie" onclick="buyItem('bowtie', 40)">💰 40</button>
-            </div>
-            <div class="shop-item">
-                <span>🍎 Super Food (+50 All)</span>
+                <div class="shop-item-icon">🍎</div>
+                <span>Super Food</span>
                 <button class="buy-btn" id="buyBtnFood" onclick="buyItem('food', 30)">💰 30</button>
             </div>
         </div>
@@ -1113,11 +1339,11 @@
             <div class="memory-grid" id="memoryGrid">
                 <!-- Cards will be generated by JS -->
             </div>
-            <button class="extra-btn" id="memoryRestartBtn" onclick="startMemoryGame()">Restart Game</button>
+            <button id="memoryRestartBtn" class="extra-btn" onclick="startMemoryGame()">Restart Game</button>
         </div>
     </div>
 
-    <!-- Reaction Game Modal (UPDATED) -->
+    <!-- Reaction Game Modal -->
     <div id="reactionModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeReactionGame()">&times;</span>
@@ -1127,1005 +1353,1195 @@
             <div id="reactionArea">
                 <!-- Fruits will be spawned here by JS -->
             </div>
-            <button class="extra-btn" id="reactionStartBtn" onclick="startReactionGame()">Start Game</button>
+            <button id="reactionStartBtn" class="extra-btn" onclick="startReactionGame()">Start Game</button>
         </div>
     </div>
 
-    <!-- Wardrobe Modal (NEW) -->
+    <!-- Wardrobe Modal -->
     <div id="wardrobeModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeWardrobe()">&times;</span>
             <h2>👚 Wardrobe 👚</h2>
-            <div class="wardrobe-item">
-                <span>🎩 Top Hat</span>
-                <button class="toggle-btn" id="toggleBtnTopHat" onclick="toggleEquip('hat', 'tophat')">Equip</button>
+            
+            <div class="modal-subtitle">Accessories</div>
+            <div class="wardrobe-grid" id="wardrobeAccessoryGrid">
+                <!-- Dinamikusan generált tartalom -->
             </div>
-            <div class="wardrobe-item">
-                <span>🎉 Party Hat</span>
-                <button class="toggle-btn" id="toggleBtnPartyHat" onclick="toggleEquip('hat', 'partyhat')">Equip</button>
+
+            <div class="modal-subtitle">Backgrounds</div>
+            <div class="wardrobe-grid" id="wardrobeBackgroundGrid">
+                <!-- Dinamikusan generált tartalom -->
             </div>
-            <div class="wardrobe-item">
-                <span>😎 Glasses</span>
-                <button class="toggle-btn" id="toggleBtnGlasses" onclick="toggleEquip('glasses', 'glasses')">Equip</button>
-            </div>
-            <div class="wardrobe-item">
-                <span>🎀 Bowtie</span>
-                <button class="toggle-btn" id="toggleBtnBowtie" onclick="toggleEquip('bowtie', 'bowtie')">Equip</button>
-            </div>
+        </div>
+    </div>
+    
+    <!-- Daily Reward Modal -->
+    <div id="dailyRewardModal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <span class="close-btn" onclick="closeModal('dailyRewardModal')">&times;</span>
+            <h2 class="modal-title">🎁 Daily Reward!</h2>
+            <p style="font-size: 18px; margin-bottom: 20px;">Welcome back! You received 💰 100 Coins!</p>
+            <button class="buy-btn" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);" onclick="closeModal('dailyRewardModal')">Awesome!</button>
+        </div>
+    </div>
+    
+    <!-- NEW: Games Modal -->
+    <div id="gamesModal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <span class="close-btn" onclick="closeModal('gamesModal')">&times;</span>
+            <h2 class="modal-title">🎮 Mini-Games 🎮</h2>
+            <p style="font-size: 16px; margin-bottom: 20px;">Which game do you want to play?</p>
+            <button class="extra-btn" onclick="openMemoryGame()" style="margin-bottom: 10px;">🧠 Memory Game</button>
+            <button class="extra-btn reaction" onclick="openReactionGame()">🍓 Catch Fruit</button>
         </div>
     </div>
 
 
     <script>
-        // Game State
-        let gameState = {
-            hunger: 100,
-            happiness: 100,
-            health: 100,
-            energy: 100,
-            coins: 0,
-            xp: 0,
-            level: 1,
-            lastUpdate: Date.now(),
-            petCount: 0,
-            itemsOwned: {
-                tophat: false,
-                partyhat: false,
-                glasses: false,
-                bowtie: false
-            },
-            itemsEquipped: {
-                hat: 'none', // 'none', 'tophat', 'partyhat'
-                glasses: false,
-                bowtie: false
-            },
-            isSleeping: false,
-            sleepIntervalId: null
-        };
+        // --- APK FIX 2: DOMContentLoaded ---
+        document.addEventListener("DOMContentLoaded", function() {
 
-        // DOM Elements
-        const ui = {
-            hungerBar: document.getElementById('hungerBar'),
-            happyBar: document.getElementById('happyBar'),
-            healthBar: document.getElementById('healthBar'),
-            energyBar: document.getElementById('energyBar'),
-            hungerValue: document.getElementById('hungerValue'),
-            happyValue: document.getElementById('happyValue'),
-            healthValue: document.getElementById('healthValue'),
-            energyValue: document.getElementById('energyValue'),
-            coins: document.getElementById('coins'),
-            xp: document.getElementById('xp'),
-            level: document.getElementById('level'),
-            message: document.getElementById('message'),
-            petArea: document.getElementById('petArea'),
-            wobblesMouth: document.getElementById('wobblesMouth'),
-            statusIcon: document.getElementById('statusIcon'),
-            // Accessories
-            wobblesHat: document.getElementById('wobblesHat'),
-            wobblesPartyHat: document.getElementById('wobblesPartyHat'),
-            wobblesGlasses: document.getElementById('wobblesGlasses'),
-            wobblesBowtie: document.getElementById('wobblesBowtie'),
-            // Shop
-            shopModal: document.getElementById('shopModal'),
-            buyBtnTopHat: document.getElementById('buyBtnTopHat'),
-            buyBtnPartyHat: document.getElementById('buyBtnPartyHat'),
-            buyBtnGlasses: document.getElementById('buyBtnGlasses'),
-            buyBtnBowtie: document.getElementById('buyBtnBowtie'),
-            buyBtnFood: document.getElementById('buyBtnFood'),
-            actionButtons: document.querySelectorAll('.action-btn, .extra-btn'),
-            // Memory Game
-            memoryModal: document.getElementById('memoryModal'),
-            memoryGrid: document.getElementById('memoryGrid'),
-            memoryMessage: document.getElementById('memoryMessage'),
-            memoryRestartBtn: document.getElementById('memoryRestartBtn'),
-            // Reaction Game
-            reactionModal: document.getElementById('reactionModal'),
-            reactionMessage: document.getElementById('reactionMessage'),
-            reactionArea: document.getElementById('reactionArea'),
-            // reactionFruit: document.getElementById('reactionFruit'), // This is now a class
-            reactionStartBtn: document.getElementById('reactionStartBtn'),
-            reactionScore: document.getElementById('reactionScore'),
-            reactionLives: document.getElementById('reactionLives'),
-            // Wardrobe
-            wardrobeModal: document.getElementById('wardrobeModal'),
-            toggleBtnTopHat: document.getElementById('toggleBtnTopHat'),
-            toggleBtnPartyHat: document.getElementById('toggleBtnPartyHat'),
-            toggleBtnGlasses: document.getElementById('toggleBtnGlasses'),
-            toggleBtnBowtie: document.getElementById('toggleBtnBowtie')
-        };
-        
-        // --- Game States ---
-        let memoryGameActive = false;
-        let firstCard = null;
-        let secondCard = null;
-        let lockBoard = false;
-        let pairsMatched = 0;
-        const cardEmojis = ['🍕', '⚽', '💊', '💧', '🛁', '⭐', '🎩', '😎'];
-
-        // Reaction Game State
-        let reactionGameState = 'idle'; // 'idle', 'running', 'over'
-        let reactionGameScore = 0;
-        let reactionGameLives = 3;
-        let reactionSpawnInterval = null;
-        let reactionGameTimer = null;
-
-
-        // --- Core Game Logic ---
-
-        // Main game loop
-        function gameLoop() {
-            if (gameState.isSleeping) return; // Pause loop if sleeping
-
-            const now = Date.now();
-            const deltaSeconds = (now - gameState.lastUpdate) / 1000;
-
-            // Stats decrease over time
-            gameState.hunger = Math.max(0, gameState.hunger - deltaSeconds * 0.3);
-            gameState.happiness = Math.max(0, gameState.happiness - deltaSeconds * 0.2);
-            gameState.energy = Math.max(0, gameState.energy - deltaSeconds * 0.1);
-
-            // Health decreases if stats are critical
-            if (gameState.hunger === 0) {
-                gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
-            }
-            if (gameState.happiness === 0) {
-                gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
+            function createDefaultGameState() {
+                return {
+                    hunger: 100,
+                    happiness: 100,
+                    health: 100,
+                    energy: 100,
+                    coins: 0,
+                    xp: 0,
+                    level: 1,
+                    lastUpdate: Date.now(),
+                    petCount: 0,
+                    inventory: [], 
+                    equipped: {
+                        hat: 'none',
+                        glasses: false,
+                        bowtie: false,
+                        crown: false,
+                        cape: false,
+                        background: 'default'
+                    },
+                    isSleeping: false,
+                    sleepIntervalId: null,
+                    lastDailyReward: null,
+                    activeQuest: null,
+                    questProgress: 0
+                };
             }
 
-            // Game over check
-            if (gameState.health === 0) {
-                showMessage("Oh no! Wobbles fainted! Restarting game...");
-                localStorage.removeItem('wobblesGame');
-                setTimeout(() => location.reload(), 2000);
-            }
+            let gameState = createDefaultGameState();
 
-            gameState.lastUpdate = now;
-            updateUI();
-            saveGame();
-        }
+            const ui = {
+                hungerBar: document.getElementById('hungerBar'),
+                happyBar: document.getElementById('happyBar'),
+                healthBar: document.getElementById('healthBar'),
+                energyBar: document.getElementById('energyBar'),
+                hungerValue: document.getElementById('hungerValue'),
+                happyValue: document.getElementById('happyValue'),
+                healthValue: document.getElementById('healthValue'),
+                energyValue: document.getElementById('energyValue'),
+                coins: document.getElementById('coins'),
+                xp: document.getElementById('xp'),
+                level: document.getElementById('level'),
+                message: document.getElementById('message'),
+                petArea: document.getElementById('petArea'),
+                wobblesMouth: document.getElementById('wobblesMouth'),
+                wobblesContainer: document.getElementById('wobbles'),
+                statusIcon: document.getElementById('statusIcon'),
+                // Accessories
+                wobblesHat: document.getElementById('wobblesHat'),
+                wobblesPartyHat: document.getElementById('wobblesPartyHat'),
+                wobblesGlasses: document.getElementById('wobblesGlasses'),
+                wobblesBowtie: document.getElementById('wobblesBowtie'),
+                wobblesCrown: document.getElementById('wobblesCrown'),
+                wobblesCape: document.getElementById('wobblesCape'),
+                // Shop
+                shopModal: document.getElementById('shopModal'),
+                shopAccessoryGrid: document.getElementById('shopAccessoryGrid'),
+                shopBackgroundGrid: document.getElementById('shopBackgroundGrid'),
+                buyBtnFood: document.getElementById('buyBtnFood'),
+                actionButtons: document.querySelectorAll('.action-btn, .side-action-btn'), // MODIFIED
+                // Memory Game
+                memoryModal: document.getElementById('memoryModal'),
+                memoryGrid: document.getElementById('memoryGrid'),
+                memoryMessage: document.getElementById('memoryMessage'),
+                memoryRestartBtn: document.getElementById('memoryRestartBtn'),
+                // Reaction Game
+                reactionModal: document.getElementById('reactionModal'),
+                reactionMessage: document.getElementById('reactionMessage'),
+                reactionArea: document.getElementById('reactionArea'),
+                reactionStartBtn: document.getElementById('reactionStartBtn'),
+                reactionScore: document.getElementById('reactionScore'),
+                reactionLives: document.getElementById('reactionLives'),
+                // Wardrobe
+                wardrobeModal: document.getElementById('wardrobeModal'),
+                wardrobeAccessoryGrid: document.getElementById('wardrobeAccessoryGrid'),
+                wardrobeBackgroundGrid: document.getElementById('wardrobeBackgroundGrid'),
+                // Daily Reward
+                dailyRewardBtn: document.getElementById('dailyRewardBtn'),
+                dailyRewardModal: document.getElementById('dailyRewardModal'),
+                // Quest
+                questDisplay: document.getElementById('questDisplay'),
+                // Games
+                gamesModal: document.getElementById('gamesModal') // NEW
+            };
 
-        // Update all UI elements
-        function updateUI() {
-            // Bars
-            ui.hungerBar.style.width = gameState.hunger + '%';
-            ui.happyBar.style.width = gameState.happiness + '%';
-            ui.healthBar.style.width = gameState.health + '%';
-            ui.energyBar.style.width = gameState.energy + '%';
+            const shopItems = {
+                accessories: [
+                    { id: 'tophat', name: 'Top Hat', price: 50, icon: '🎩' },
+                    { id: 'partyhat', name: 'Party Hat', price: 60, icon: '🎉' },
+                    { id: 'glasses', name: 'Glasses', price: 75, icon: '😎' },
+                    { id: 'bowtie', name: 'Bowtie', price: 40, icon: '🎀' },
+                    { id: 'crown', name: 'Crown', price: 500, icon: '👑' },
+                    { id: 'cape', name: 'Hero Cape', price: 400, icon: '🦸' }
+                ],
+                backgrounds: [
+                    { id: 'beach', name: 'Beach', price: 150, icon: '🏖️' },
+                    { id: 'space', name: 'Space', price: 250, icon: '🚀' },
+                    { id: 'forest', name: 'Forest', price: 200, icon: '🌲' },
+                    { id: 'volcano', name: 'Volcano', price: 200, icon: '🌋' },
+                    { id: 'winter', name: 'Winter', price: 200, icon: '❄️' }
+                ]
+            };
             
-            // Text Values
-            ui.hungerValue.textContent = Math.round(gameState.hunger) + '%';
-            ui.happyValue.textContent = Math.round(gameState.happiness) + '%';
-            ui.healthValue.textContent = Math.round(gameState.health) + '%';
-            ui.energyValue.textContent = Math.round(gameState.energy) + '%';
+            const quests = [
+                { id: 'play_3_games', title: 'Quest: Play 3 mini-games', target: 3, reward: 50, type: 'game' },
+                { id: 'feed_5_times', title: 'Quest: Feed Wobbles 5 times', target: 5, reward: 30, type: 'feed' },
+                { id: 'clean_2_times', title: 'Quest: Clean Wobbles 2 times', target: 2, reward: 20, type: 'clean' },
+                { id: 'pet_10_times', title: 'Quest: Pet Wobbles 10 times', target: 10, reward: 25, type: 'pet' }
+            ];
             
-            // Player Stats
-            ui.coins.textContent = '💰 ' + gameState.coins;
-            ui.xp.textContent = gameState.xp;
-            ui.level.textContent = gameState.level;
-            
-            // Pet Expression
-            ui.wobblesMouth.classList.remove('happy', 'sad');
-            if (gameState.happiness > 60) {
-                ui.wobblesMouth.classList.add('happy');
-            } else if (gameState.happiness < 30) {
-                ui.wobblesMouth.classList.add('sad');
+            let memoryGameActive = false;
+            let firstCard = null;
+            let secondCard = null;
+            let lockBoard = false;
+            let pairsMatched = 0;
+            const cardEmojis = ['🍕', '⚽', '💊', '💧', '🛁', '⭐', '🎩', '😎'];
+
+            let reactionGameState = 'idle';
+            let reactionGameScore = 0;
+            let reactionGameLives = 3;
+            let reactionSpawnInterval = null;
+            let reactionGameTimer = null;
+
+
+            // --- Core Game Logic ---
+
+            function gameLoop() {
+                if (gameState.isSleeping) return;
+
+                const now = Date.now();
+                const deltaSeconds = (now - gameState.lastUpdate) / 1000;
+
+                gameState.hunger = Math.max(0, gameState.hunger - deltaSeconds * 0.3);
+                gameState.happiness = Math.max(0, gameState.happiness - deltaSeconds * 0.2);
+                gameState.energy = Math.max(0, gameState.energy - deltaSeconds * 0.1);
+
+                if (gameState.hunger === 0) {
+                    gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
+                }
+                if (gameState.happiness === 0) {
+                    gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
+                }
+
+                if (gameState.health === 0) {
+                    showMessage("Oh no! Wobbles fainted! Restarting game...");
+                    try {
+                        localStorage.removeItem('wobblesGame');
+                    } catch (e) {
+                        console.error("Failed to clear save on game over:", e);
+                    }
+                    setTimeout(() => location.reload(), 2000);
+                }
+
+                gameState.lastUpdate = now;
+                updateUI();
+                saveGame();
+            }
+
+            function updateUI() {
+                ui.hungerBar.style.width = gameState.hunger + '%';
+                ui.happyBar.style.width = gameState.happiness + '%';
+                ui.healthBar.style.width = gameState.health + '%';
+                ui.energyBar.style.width = gameState.energy + '%';
+                
+                ui.hungerValue.textContent = Math.round(gameState.hunger) + '%';
+                ui.happyValue.textContent = Math.round(gameState.happiness) + '%';
+                ui.healthValue.textContent = Math.round(gameState.health) + '%';
+                ui.energyValue.textContent = Math.round(gameState.energy) + '%';
+                
+                ui.coins.textContent = '💰 ' + gameState.coins;
+                ui.xp.textContent = gameState.xp;
+                ui.level.textContent = gameState.level;
+                
+                ui.wobblesMouth.classList.remove('happy', 'sad');
+                if (gameState.happiness > 60) {
+                    ui.wobblesMouth.classList.add('happy');
+                } else if (gameState.happiness < 30) {
+                    ui.wobblesMouth.classList.add('sad');
+                }
+                
+                let status = '';
+                if (gameState.health < 30) status = '🤢';
+                else if (gameState.hunger < 30) status = '😫';
+                else if (gameState.happiness < 30) status = '😢';
+                else if (gameState.energy < 20) status = '😴';
+                
+                if (status) {
+                    ui.statusIcon.textContent = status;
+                    ui.statusIcon.classList.add('show');
+                } else {
+                    ui.statusIcon.classList.remove('show');
+                }
+
+                updateAccessories();
+                updateBackground();
+                checkEvolution();
+                updateQuestDisplay();
+
+                const requiredXP = gameState.level * 100;
+                if (gameState.xp >= requiredXP) {
+                    levelUp();
+                }
             }
             
-            // Status Effect Icon
-            let status = '';
-            if (gameState.health < 30) status = '🤢';
-            else if (gameState.hunger < 30) status = '😫';
-            else if (gameState.happiness < 30) status = '😢';
-            else if (gameState.energy < 20) status = '😴';
+            function updateAccessories() {
+                ui.wobblesHat.style.display = gameState.equipped.hat === 'tophat' ? 'block' : 'none';
+                ui.wobblesPartyHat.style.display = gameState.equipped.hat === 'partyhat' ? 'block' : 'none';
+                ui.wobblesGlasses.style.display = gameState.equipped.glasses ? 'block' : 'none';
+                ui.wobblesBowtie.style.display = gameState.equipped.bowtie ? 'block' : 'none';
+                ui.wobblesCrown.style.display = gameState.equipped.crown ? 'block' : 'none';
+                ui.wobblesCape.style.display = gameState.equipped.cape ? 'block' : 'none';
+            }
             
-            if (status) {
-                ui.statusIcon.textContent = status;
-                ui.statusIcon.classList.add('show');
-            } else {
-                ui.statusIcon.classList.remove('show');
+            function updateBackground() {
+                const bgId = gameState.equipped.background || 'default';
+                ui.petArea.className = 'pet-area';
+                if (bgId !== 'default') {
+                    ui.petArea.classList.add(`bg-${bgId}`);
+                }
+            }
+            
+            function checkEvolution() {
+                let scale = 1.0;
+                if (gameState.level >= 10) {
+                    scale = 1.2;
+                } else if (gameState.level >= 5) {
+                    scale = 1.1;
+                }
+                ui.wobblesContainer.style.setProperty('--pet-scale', scale);
             }
 
-            // Accessories
-            ui.wobblesHat.style.display = gameState.itemsEquipped.hat === 'tophat' ? 'block' : 'none';
-            ui.wobblesPartyHat.style.display = gameState.itemsEquipped.hat === 'partyhat' ? 'block' : 'none';
-            ui.wobblesGlasses.style.display = gameState.itemsEquipped.glasses ? 'block' : 'none';
-            ui.wobblesBowtie.style.display = gameState.itemsEquipped.bowtie ? 'block' : 'none';
-
-            // Level up check
-            const requiredXP = gameState.level * 100;
-            if (gameState.xp >= requiredXP) {
-                levelUp();
+            function levelUp() {
+                gameState.level++;
+                gameState.xp -= (gameState.level - 1) * 100;
+                gameState.coins += 100;
+                showMessage(`🎉 Level Up! You are now Level ${gameState.level}!`);
+                createParticles('⭐', 15);
             }
-        }
 
-        // Level Up
-        function levelUp() {
-            gameState.level++;
-            gameState.xp -= (gameState.level - 1) * 100; // Subtract XP needed for previous level
-            gameState.coins += 100; // Level up bonus
-            showMessage(`🎉 Level Up! You are now Level ${gameState.level}!`);
-            createParticles('⭐', 15);
-        }
-
-        // Save/Load
-        function saveGame() {
-            localStorage.setItem('wobblesGame', JSON.stringify(gameState));
-        }
-
-        function loadGame() {
-            const savedGame = localStorage.getItem('wobblesGame');
-            if (savedGame) {
+            // --- APK FIX 1: Safe Save/Load ---
+            function saveGame() {
                 try {
-                    let loadedState = JSON.parse(savedGame);
-                    
-                    // --- Migration from old save format ---
-                    if (loadedState.hasHat !== undefined || !loadedState.itemsOwned) {
-                        console.log("Migrating old save file...");
-                        let itemsOwned = { tophat: false, partyhat: false, glasses: false, bowtie: false };
-                        let itemsEquipped = { hat: 'none', glasses: false, bowtie: false };
+                    localStorage.setItem('wobblesGame', JSON.stringify(gameState));
+                } catch (e) {
+                    console.error("Failed to save game:", e);
+                }
+            }
 
-                        if (loadedState.hasHat) {
-                            itemsOwned.tophat = true;
-                            itemsEquipped.hat = 'tophat'; // Equip old items by default
+            function loadGame() {
+                let savedGame;
+                try {
+                    savedGame = localStorage.getItem('wobblesGame');
+                } catch (e) {
+                    console.error("Failed to read saved game:", e);
+                    savedGame = null;
+                }
+                
+                if (savedGame) {
+                    try {
+                        let loadedState = JSON.parse(savedGame);
+                        
+                        // --- Migration from old `itemsOwned` object to `inventory` array ---
+                        if (loadedState.itemsOwned && !loadedState.inventory) {
+                            console.log("Migrating old save file to new inventory system...");
+                            loadedState.inventory = [];
+                            if (loadedState.itemsOwned.tophat) loadedState.inventory.push('tophat');
+                            if (loadedState.itemsOwned.partyhat) loadedState.inventory.push('partyhat');
+                            if (loadedState.itemsOwned.glasses) loadedState.inventory.push('glasses');
+                            if (loadedState.itemsOwned.bowtie) loadedState.inventory.push('bowtie');
+                            if (loadedState.itemsOwned.crown) loadedState.inventory.push('crown');
+                            if (loadedState.itemsOwned.cape) loadedState.inventory.push('cape');
+                            if (loadedState.itemsOwned.bg_beach) loadedState.inventory.push('beach');
+                            if (loadedState.itemsOwned.bg_space) loadedState.inventory.push('space');
+                            if (loadedState.itemsOwned.bg_forest) loadedState.inventory.push('forest');
+                            if (loadedState.itemsOwned.bg_volcano) loadedState.inventory.push('volcano');
+                            if (loadedState.itemsOwned.bg_winter) loadedState.inventory.push('winter');
+                            
+                            delete loadedState.itemsOwned;
                         }
-                        if (loadedState.hasGlasses) {
-                            itemsOwned.glasses = true;
-                            itemsEquipped.glasses = true;
+
+                        // --- ROBUST STATE MERGE (FIXES NaN BUG) ---
+                        let newGameState = createDefaultGameState(); 
+                        
+                        for (let key in newGameState) {
+                            if (loadedState.hasOwnProperty(key)) {
+                                if (key === 'equipped' && typeof loadedState[key] === 'object' && loadedState[key] !== null) {
+                                    newGameState[key] = { ...newGameState[key], ...loadedState[key] };
+                                } else if (loadedState[key] !== undefined && loadedState[key] !== null) {
+                                    newGameState[key] = loadedState[key];
+                                }
+                            }
                         }
                         
-                        loadedState.itemsOwned = itemsOwned;
-                        loadedState.itemsEquipped = itemsEquipped;
+                        gameState = newGameState;
+                        // --- END SAFE STATE MERGE ---
                         
-                        delete loadedState.hasHat;
-                        delete loadedState.hasGlasses;
-                    }
-                    // --- End Migration ---
+                        if (!gameState.inventory.includes('default')) {
+                            gameState.inventory.push('default');
+                        }
 
-                    gameState = loadedState; // Assign migrated state
-                    
-                    // Calculate "offline" progress
-                    const now = Date.now();
-                    const deltaSeconds = (now - gameState.lastUpdate) / 1000;
-                    
-                    if (!gameState.isSleeping) { // Only decay if not sleeping
-                        gameState.hunger = Math.max(0, gameState.hunger - deltaSeconds * 0.3);
-                        gameState.happiness = Math.max(0, gameState.happiness - deltaSeconds * 0.2);
-                        gameState.energy = Math.max(0, gameState.energy - deltaSeconds * 0.1);
-                        if (gameState.hunger === 0) gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
-                        if (gameState.happiness === 0) gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
-                    } else {
-                        // Apply offline REGEN
-                        gameState.energy = Math.min(100, gameState.energy + deltaSeconds * 2);
-                        gameState.health = Math.min(100, gameState.health + deltaSeconds * 0.5);
-                        if (gameState.energy >= 100) {
-                            gameState.isSleeping = false;
+                        // Calculate "offline" progress
+                        const now = Date.now();
+                        const deltaSeconds = (now - gameState.lastUpdate) / 1000;
+                        
+                        if (!gameState.isSleeping) {
+                            gameState.hunger = Math.max(0, gameState.hunger - deltaSeconds * 0.3);
+                            gameState.happiness = Math.max(0, gameState.happiness - deltaSeconds * 0.2);
+                            gameState.energy = Math.max(0, gameState.energy - deltaSeconds * 0.1);
+                            if (gameState.hunger === 0) gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
+                            if (gameState.happiness === 0) gameState.health = Math.max(0, gameState.health - deltaSeconds * 0.5);
+                        } else {
+                            gameState.energy = Math.min(100, gameState.energy + deltaSeconds * 2);
+                            gameState.health = Math.min(100, gameState.health + deltaSeconds * 0.5);
+                            if (gameState.energy >= 100) {
+                                gameState.isSleeping = false;
+                            }
+                        }
+
+                        gameState.lastUpdate = now;
+                        showMessage("Welcome back!");
+
+                        if (gameState.isSleeping) {
+                            document.getElementById('wobbles').classList.add('is-sleeping');
+                            setButtonsDisabled(true);
+                            ui.petArea.style.filter = 'brightness(0.3)';
+                            document.getElementById('btn-sleep').disabled = false;
+                            document.getElementById('btn-sleep').innerHTML = '☀️<span class="action-label">Wake Up</span>';
+                            gameState.sleepIntervalId = setInterval(createSleepZzz, 800);
+                        }
+
+                    } catch(e) {
+                        console.error('Starting new game, corrupted save.', e);
+                        try {
+                            localStorage.removeItem('wobblesGame');
+                        } catch (removeError) {
+                            console.error("Failed to remove corrupted save:", removeError);
+                        }
+                        gameState = createDefaultGameState();
+                        gameState.lastUpdate = Date.now();
+                        if (!gameState.inventory.includes('default')) {
+                             gameState.inventory.push('default');
                         }
                     }
+                } else {
+                    gameState = createDefaultGameState();
+                    gameState.lastUpdate = Date.now();
+                    if (!gameState.inventory.includes('default')) {
+                         gameState.inventory.push('default');
+                    }
+                }
+            }
 
-                    gameState.lastUpdate = now; // Set update time to now
-                    showMessage("Welcome back!");
+            // --- UI Helpers ---
 
-                    // Ensure sleep state is correct on load
-                    if (gameState.isSleeping) {
-                        document.getElementById('wobbles').classList.add('is-sleeping'); // Add class
+            function showMessage(text) {
+                ui.message.textContent = text;
+                ui.message.classList.add('show');
+                setTimeout(() => ui.message.classList.remove('show'), 2500);
+            }
+
+            function createEmoji(emoji) {
+                const emojiEl = document.createElement('div');
+                emojiEl.className = 'emoji';
+                emojiEl.textContent = emoji;
+                emojiEl.style.left = (Math.random() * 70 + 15) + '%';
+                emojiEl.style.top = '45%';
+                ui.petArea.appendChild(emojiEl);
+                setTimeout(() => emojiEl.remove(), 1500);
+            }
+
+            function createSleepZzz() {
+                if (!gameState.isSleeping) return;
+                const zzzEl = document.createElement('div');
+                zzzEl.className = 'zzz-particle';
+                zzzEl.textContent = 'z';
+                setTimeout(() => { if (gameState.isSleeping) zzzEl.textContent = 'Zz'; }, 500);
+                setTimeout(() => { if (gameState.isSleeping) zzzEl.textContent = 'Zzz'; }, 1000);
+                
+                zzzEl.style.left = (Math.random() * 30 + 55) + '%';
+                zzzEl.style.top = '40%';
+                ui.petArea.appendChild(zzzEl);
+                setTimeout(() => zzzEl.remove(), 2500);
+            }
+
+            function createParticles(emoji, count) {
+                for (let i = 0; i < count; i++) {
+                    setTimeout(() => {
+                        const particle = document.createElement('div');
+                        particle.className = 'particle';
+                        particle.textContent = emoji;
+                        particle.style.left = '50%';
+                        particle.style.top = '50%';
+                        particle.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                        particle.style.setProperty('--tx', (Math.random() * 200 - 100) + 'px');
+                        particle.style.setProperty('--ty', (Math.random() * 200 - 100) + 'px');
+                        ui.petArea.appendChild(particle);
+                        setTimeout(() => particle.remove(), 2000);
+                    }, i * 50);
+                }
+            }
+
+            function setButtonsDisabled(disabled) {
+                // MODIFIED: Query selector now finds .action-btn and .side-action-btn
+                document.querySelectorAll('.action-btn, .side-action-btn').forEach(btn => {
+                    // Ne tiltsuk le a napi jutalmat
+                    if (btn.id === 'dailyRewardBtn' && disabled) {
+                        return;
+                    }
+                    btn.disabled = disabled;
+                });
+            }
+            
+            // --- Pet Actions ---
+            window.feedWobbles = function() {
+                if (gameState.hunger < 100) {
+                    gameState.hunger = Math.min(100, gameState.hunger + 25);
+                    gameState.energy = Math.min(100, gameState.energy + 10);
+                    gameState.coins += 8;
+                    gameState.xp += 10;
+                    showMessage('Yum yum! 🍕 That was delicious!');
+                    createEmoji('🍕');
+                    createParticles('✨', 5);
+                    progressQuest('feed');
+                    updateUI();
+                } else {
+                    showMessage("I'm full! 😊");
+                }
+            }
+
+            window.playWithWobbles = function() {
+                if (gameState.energy > 20) {
+                    gameState.happiness = Math.min(100, gameState.happiness + 30);
+                    gameState.hunger = Math.max(0, gameState.hunger - 15);
+                    gameState.energy = Math.max(0, gameState.energy - 20);
+                    gameState.coins += 15;
+                    gameState.xp += 20;
+                    showMessage('Woohoo! 🎉 That was so much fun!');
+                    createEmoji('⚽');
+                    createParticles('🎈', 8);
+                    updateUI();
+                } else {
+                    showMessage("I'm too tired to play! 😴");
+                }
+            }
+
+            window.healWobbles = function() {
+                if (gameState.health < 100) {
+                    gameState.health = Math.min(100, gameState.health + 35);
+                    gameState.coins += 10;
+                    gameState.xp += 15;
+                    showMessage('I feel so much better! 💚');
+                    createEmoji('💊');
+                    createParticles('💚', 6);
+                    updateUI();
+                } else {
+                    showMessage("I'm already perfectly healthy! 💪");
+                }
+            }
+
+            window.giveWater = function() {
+                gameState.hunger = Math.min(100, gameState.hunger + 10);
+                gameState.health = Math.min(100, gameState.health + 5);
+                gameState.energy = Math.min(100, gameState.energy + 5);
+                gameState.coins += 5;
+                gameState.xp += 8;
+                showMessage('Aaah, refreshing! 💧');
+                createEmoji('💧');
+                createParticles('💦', 5);
+                updateUI();
+            }
+
+            window.putToSleep = function() {
+                if (gameState.isSleeping) {
+                    wakeUp();
+                } else {
+                    if (gameState.energy < 90) {
+                        gameState.isSleeping = true;
+                        document.getElementById('wobbles').classList.add('is-sleeping');
+                        showMessage('Zzz... Wobbles is taking a nap... 😴💤');
+                        createEmoji('💤');
                         setButtonsDisabled(true);
                         ui.petArea.style.filter = 'brightness(0.3)';
                         document.getElementById('btn-sleep').disabled = false;
                         document.getElementById('btn-sleep').innerHTML = '☀️<span class="action-label">Wake Up</span>';
-                        gameState.sleepIntervalId = setInterval(createSleepZzz, 800); // Start particles
+                        
+                        gameState.sleepIntervalId = setInterval(createSleepZzz, 800); 
+
+                        const sleepRegenInterval = setInterval(() => {
+                            if (!gameState.isSleeping) {
+                                clearInterval(sleepRegenInterval);
+                                return;
+                            }
+                            gameState.energy = Math.min(100, gameState.energy + 2);
+                            gameState.health = Math.min(100, gameState.health + 0.5);
+                            if (gameState.energy === 100) {
+                                wakeUp();
+                            }
+                            updateUI();
+                        }, 200);
+
+                    } else {
+                        showMessage("I'm not tired! ⚡");
                     }
-
-                } catch(e) {
-                    console.error('Starting new game, corrupted save.', e);
-                    localStorage.removeItem('wobblesGame'); // Clear corrupted save
-                    gameState.lastUpdate = Date.now();
                 }
-            } else {
-                gameState.lastUpdate = Date.now();
             }
-        }
-
-        // --- UI Helpers ---
-
-        function showMessage(text) {
-            ui.message.textContent = text;
-            ui.message.classList.add('show');
-            setTimeout(() => ui.message.classList.remove('show'), 2500);
-        }
-
-        function createEmoji(emoji) {
-            const emojiEl = document.createElement('div');
-            emojiEl.className = 'emoji';
-            emojiEl.textContent = emoji;
-            emojiEl.style.left = (Math.random() * 70 + 15) + '%';
-            emojiEl.style.top = '45%';
-            ui.petArea.appendChild(emojiEl);
-            setTimeout(() => emojiEl.remove(), 1500);
-        }
-
-        function createSleepZzz() {
-            if (!gameState.isSleeping) return; // Stop if woken up
-            const zzzEl = document.createElement('div');
-            zzzEl.className = 'zzz-particle';
-            zzzEl.textContent = 'z';
-            setTimeout(() => { if (gameState.isSleeping) zzzEl.textContent = 'Zz'; }, 500);
-            setTimeout(() => { if (gameState.isSleeping) zzzEl.textContent = 'Zzz'; }, 1000);
             
-            zzzEl.style.left = (Math.random() * 30 + 55) + '%'; // Start from head area
-            zzzEl.style.top = '40%';
-            ui.petArea.appendChild(zzzEl);
-            setTimeout(() => zzzEl.remove(), 2500);
-        }
-
-        function createParticles(emoji, count) {
-            for (let i = 0; i < count; i++) {
-                setTimeout(() => {
-                    const particle = document.createElement('div');
-                    particle.className = 'particle';
-                    particle.textContent = emoji;
-                    particle.style.left = '50%';
-                    particle.style.top = '50%';
-                    particle.style.fontSize = (Math.random() * 20 + 15) + 'px';
-                    particle.style.setProperty('--tx', (Math.random() * 200 - 100) + 'px');
-                    particle.style.setProperty('--ty', (Math.random() * 200 - 100) + 'px');
-                    ui.petArea.appendChild(particle);
-                    setTimeout(() => particle.remove(), 2000);
-                }, i * 50);
+            function wakeUp() {
+                gameState.isSleeping = false;
+                document.getElementById('wobbles').classList.remove('is-sleeping');
+                if (gameState.sleepIntervalId) {
+                    clearInterval(gameState.sleepIntervalId);
+                    gameState.sleepIntervalId = null;
+                }
+                showMessage('Yawn! That was a great nap! ☀️');
+                setButtonsDisabled(false);
+                ui.petArea.style.filter = 'brightness(1)';
+                document.getElementById('btn-sleep').innerHTML = '😴<span class="action-label">Sleep</span>';
+                updateUI();
             }
-        }
 
-        function setButtonsDisabled(disabled) {
-            ui.actionButtons.forEach(btn => {
-                btn.disabled = disabled;
-            });
-        }
-        
-        // --- Pet Actions ---
-
-        function feedWobbles() {
-            if (gameState.hunger < 100) {
-                gameState.hunger = Math.min(100, gameState.hunger + 25);
-                gameState.energy = Math.min(100, gameState.energy + 10);
+            window.cleanWobbles = function() {
+                gameState.health = Math.min(100, gameState.health + 15);
+                gameState.happiness = Math.min(100, gameState.happiness + 10);
                 gameState.coins += 8;
-                gameState.xp += 10;
-                showMessage('Yum yum! 🍕 That was delicious!');
-                createEmoji('🍕');
-                createParticles('✨', 5);
+                gameState.xp += 12;
+                showMessage('So clean and sparkly! ✨🛁');
+                createEmoji('✨');
+                createParticles('🧼', 6);
+                progressQuest('clean');
                 updateUI();
-            } else {
-                showMessage("I'm full! 😊");
             }
-        }
 
-        function playWithWobbles() {
-            if (gameState.energy > 20) {
-                gameState.happiness = Math.min(100, gameState.happiness + 30);
-                gameState.hunger = Math.max(0, gameState.hunger - 15);
-                gameState.energy = Math.max(0, gameState.energy - 20);
-                gameState.coins += 15;
-                gameState.xp += 20;
-                showMessage('Woohoo! 🎉 That was so much fun!');
-                createEmoji('⚽');
-                createParticles('🎈', 8);
+            window.petWobbles = function() {
+                if (gameState.isSleeping) {
+                    showMessage("Shh... Wobbles is sleeping. 🤫");
+                    return;
+                }
+                gameState.happiness = Math.min(100, gameState.happiness + 3);
+                gameState.coins += 2;
+                gameState.xp += 3;
+                gameState.petCount++;
+                
+                const messages = [
+                    'Hehe! That tickles! 🥰',
+                    'I love pats! ❤️',
+                    'More! More! 😍',
+                    'That feels so good! 💕',
+                    "You're the best! 🌟"
+                ];
+                
+                showMessage(messages[Math.floor(Math.random() * messages.length)]);
+                createEmoji('❤️');
+                progressQuest('pet');
                 updateUI();
-            } else {
-                showMessage("I'm too tired to play! 😴");
             }
-        }
 
-        function healWobbles() {
-            if (gameState.health < 100) {
-                gameState.health = Math.min(100, gameState.health + 35);
-                gameState.coins += 10;
-                gameState.xp += 15;
-                showMessage('I feel so much better! 💚');
-                createEmoji('💊');
-                createParticles('💚', 6);
+            // --- Extras ---
+            
+            // NEW: Games Modal
+            window.openGamesModal = function() {
+                ui.gamesModal.style.display = 'block';
+            }
+
+            window.openMemoryGame = function() {
+                if (gameState.energy < 10) {
+                    showMessage("I'm too tired for games! 😴 (Needs 10 Energy)");
+                    return;
+                }
+                if (memoryGameActive) {
+                    ui.memoryModal.style.display = 'block';
+                    return;
+                }
+                
+                closeModal('gamesModal'); // Close selection modal
+                gameState.energy = Math.max(0, gameState.energy - 10);
+                progressQuest('game');
                 updateUI();
-            } else {
-                showMessage("I'm already perfectly healthy! 💪");
+                
+                ui.memoryModal.style.display = 'block';
+                startMemoryGame();
             }
-        }
 
-        function giveWater() {
-            gameState.hunger = Math.min(100, gameState.hunger + 10);
-            gameState.health = Math.min(100, gameState.health + 5);
-            gameState.energy = Math.min(100, gameState.energy + 5);
-            gameState.coins += 5;
-            gameState.xp += 8;
-            showMessage('Aaah, refreshing! 💧');
-            createEmoji('💧');
-            createParticles('💦', 5);
-            updateUI();
-        }
+            window.startMemoryGame = function() {
+                memoryGameActive = true;
+                pairsMatched = 0;
+                lockBoard = false;
+                firstCard = null;
+                secondCard = null;
+                ui.memoryMessage.textContent = "Match all the pairs!";
+                ui.memoryGrid.innerHTML = '';
 
-        function putToSleep() {
-            if (gameState.isSleeping) {
-                // --- WAKE UP ---
-                wakeUp();
-            } else {
-                // --- GO TO SLEEP ---
-                if (gameState.energy < 90) {
-                    gameState.isSleeping = true;
-                    document.getElementById('wobbles').classList.add('is-sleeping'); // Add class for CSS
-                    showMessage('Zzz... Wobbles is taking a nap... 😴💤');
-                    createEmoji('💤');
-                    setButtonsDisabled(true);
-                    ui.petArea.style.filter = 'brightness(0.3)';
-                    document.getElementById('btn-sleep').disabled = false; // Keep sleep button active to wake up
-                    document.getElementById('btn-sleep').innerHTML = '☀️<span class="action-label">Wake Up</span>';
-                    
-                    gameState.sleepIntervalId = setInterval(createSleepZzz, 800); 
+                let cards = [...cardEmojis, ...cardEmojis];
+                cards.sort(() => 0.5 - Math.random());
 
-                    const sleepRegenInterval = setInterval(() => {
-                        if (!gameState.isSleeping) {
-                            clearInterval(sleepRegenInterval);
-                            return;
-                        }
-                        gameState.energy = Math.min(100, gameState.energy + 2);
-                        gameState.health = Math.min(100, gameState.health + 0.5);
-                        if (gameState.energy === 100) { // Auto-wake
-                            wakeUp();
-                        }
-                        updateUI();
-                    }, 200);
+                cards.forEach(emoji => {
+                    const card = document.createElement('div');
+                    card.classList.add('memory-card');
+                    card.dataset.emoji = emoji;
 
-                } else {
-                    showMessage("I'm not tired! ⚡");
+                    card.innerHTML = `
+                        <div class="memory-card-face card-front">?</div>
+                        <div class="memory-card-face card-back">${emoji}</div>
+                    `;
+
+                    card.addEventListener('click', flipCard);
+                    card.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        flipCard(e);
+                    });
+                    ui.memoryGrid.appendChild(card);
+                });
+            }
+
+            window.closeMemoryGame = function() {
+                ui.memoryModal.style.display = 'none';
+                if (memoryGameActive) {
+                    showMessage("Memory Game cancelled.");
+                    memoryGameActive = false;
                 }
             }
-        }
-        
-        function wakeUp() {
-            gameState.isSleeping = false;
-            document.getElementById('wobbles').classList.remove('is-sleeping'); // Remove class
-            if (gameState.sleepIntervalId) {
-                clearInterval(gameState.sleepIntervalId);
-                gameState.sleepIntervalId = null;
+
+            function flipCard(e) {
+                const clickedCard = e.currentTarget;
+                if (lockBoard || clickedCard === firstCard || clickedCard.classList.contains('is-matched')) return;
+
+                clickedCard.classList.add('is-flipped');
+
+                if (!firstCard) {
+                    firstCard = clickedCard;
+                    return;
+                }
+
+                secondCard = clickedCard;
+                lockBoard = true;
+                checkForMatch();
             }
-            showMessage('Yawn! That was a great nap! ☀️');
-            setButtonsDisabled(false);
-            ui.petArea.style.filter = 'brightness(1)';
-            document.getElementById('btn-sleep').innerHTML = '😴<span class="action-label">Sleep</span>';
-            updateUI();
-        }
 
-        function cleanWobbles() {
-            gameState.health = Math.min(100, gameState.health + 15);
-            gameState.happiness = Math.min(100, gameState.happiness + 10);
-            gameState.coins += 8;
-            gameState.xp += 12;
-            showMessage('So clean and sparkly! ✨🛁');
-            createEmoji('✨');
-            createParticles('🧼', 6);
-            updateUI();
-        }
-
-        function petWobbles() {
-            if (gameState.isSleeping) {
-                showMessage("Shh... Wobbles is sleeping. 🤫");
-                return;
+            function checkForMatch() {
+                let isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
+                isMatch ? disableCards() : unflipCards();
             }
-            gameState.happiness = Math.min(100, gameState.happiness + 3);
-            gameState.coins += 2;
-            gameState.xp += 3;
-            gameState.petCount++;
-            
-            const messages = [
-                'Hehe! That tickles! 🥰',
-                'I love pats! ❤️',
-                'More! More! 😍',
-                'That feels so good! 💕',
-                "You're the best! 🌟"
-            ];
-            
-            showMessage(messages[Math.floor(Math.random() * messages.length)]);
-            createEmoji('❤️');
-            updateUI();
-        }
 
-        // --- Extras ---
-
-        function openMemoryGame() {
-            if (gameState.energy < 10) {
-                showMessage("I'm too tired for games! 😴 (Needs 10 Energy)");
-                return;
+            function disableCards() {
+                firstCard.classList.add('is-matched');
+                secondCard.classList.add('is-matched');
+                
+                pairsMatched++;
+                if (pairsMatched === cardEmojis.length) {
+                    memoryGameActive = false;
+                    let coinsWon = Math.floor(Math.random() * 50) + 25;
+                    let xpWon = 50;
+                    gameState.coins += coinsWon;
+                    gameState.xp += xpWon;
+                    ui.memoryMessage.textContent = `You won! +💰${coinsWon} & +✨${xpWon} XP!`;
+                    createParticles('🎉', 10);
+                    updateUI();
+                }
+                
+                resetBoard();
             }
-            if (memoryGameActive) {
-                ui.memoryModal.style.display = 'block'; // Re-open if already active
-                return;
+
+            function unflipCards() {
+                setTimeout(() => {
+                    firstCard.classList.remove('is-flipped');
+                    secondCard.classList.remove('is-flipped');
+                    resetBoard();
+                }, 1000);
+            }
+
+            function resetBoard() {
+                [firstCard, secondCard, lockBoard] = [null, null, false];
+            }
+
+            window.openReactionGame = function() {
+                if (gameState.energy < 10) {
+                    showMessage("I'm too tired for games! 😴 (Needs 10 Energy)");
+                    return;
+                }
+                if (reactionGameState === 'running') {
+                    ui.reactionModal.style.display = 'block';
+                    return;
+                }
+                
+                closeModal('gamesModal'); // Close selection modal
+                gameState.energy = Math.max(0, gameState.energy - 10);
+                progressQuest('game');
+                updateUI();
+                
+                ui.reactionModal.style.display = 'block';
+                setupReactionGame();
+            }
+
+            function setupReactionGame() {
+                reactionGameState = 'idle';
+                reactionGameScore = 0;
+                reactionGameLives = 3;
+                
+                ui.reactionScore.textContent = reactionGameScore;
+                ui.reactionLives.textContent = reactionGameLives;
+                ui.reactionMessage.textContent = "Click Start to Play! (Cost: 10 Energy)";
+                ui.reactionStartBtn.textContent = "Start Game";
+                ui.reactionStartBtn.style.display = 'block';
+                
+                ui.reactionArea.innerHTML = '';
+                
+                if (reactionSpawnInterval) clearInterval(reactionSpawnInterval);
+                if (reactionGameTimer) clearTimeout(reactionGameTimer);
+            }
+
+            window.startReactionGame = function() {
+                if (reactionGameState === 'running') return;
+                reactionGameState = 'running';
+                
+                reactionGameScore = 0;
+                reactionGameLives = 3;
+                ui.reactionScore.textContent = reactionGameScore;
+                ui.reactionLives.textContent = reactionGameLives;
+
+                ui.reactionStartBtn.style.display = 'none';
+                ui.reactionMessage.textContent = "Catch them all!";
+
+                reactionSpawnInterval = setInterval(spawnFruit, 1000);
+                reactionGameTimer = setTimeout(endReactionGame, 30000); 
             }
             
-            gameState.energy = Math.max(0, gameState.energy - 10);
-            updateUI();
-            
-            ui.memoryModal.style.display = 'block';
-            startMemoryGame();
-        }
+            function spawnFruit() {
+                if (reactionGameState !== 'running') return;
 
-        function startMemoryGame() {
-            memoryGameActive = true;
-            pairsMatched = 0;
-            lockBoard = false;
-            firstCard = null;
-            secondCard = null;
-            ui.memoryMessage.textContent = "Match all the pairs!";
-            ui.memoryGrid.innerHTML = ''; // Clear old grid
+                const fruit = document.createElement('div');
+                fruit.className = 'reaction-fruit-item';
 
-            let cards = [...cardEmojis, ...cardEmojis];
-            cards.sort(() => 0.5 - Math.random()); // Shuffle cards
+                const fruits = ['🍓', '🍎', '🍉', '🍊', '🍌', '🍒'];
+                fruit.textContent = fruits[Math.floor(Math.random() * fruits.length)];
+                
+                fruit.style.left = (Math.random() * 80 + 10) + '%';
+                
+                const fallSpeed = (Math.random() * 1.5 + 1.5) + 's';
+                fruit.style.animation = `fall ${fallSpeed} linear forwards`;
 
-            cards.forEach(emoji => {
-                const card = document.createElement('div');
-                card.classList.add('memory-card');
-                card.dataset.emoji = emoji;
-
-                card.innerHTML = `
-                    <div class="memory-card-face card-front">?</div>
-                    <div class="memory-card-face card-back">${emoji}</div>
-                `;
-
-                card.addEventListener('click', flipCard);
-                card.addEventListener('touchstart', (e) => {
+                fruit.addEventListener('click', () => fruitClicked(fruit));
+                fruit.addEventListener('touchstart', (e) => {
                     e.preventDefault();
-                    flipCard(e); // Pass the event object
+                    fruitClicked(fruit);
                 });
-                ui.memoryGrid.appendChild(card);
-            });
-        }
+                fruit.addEventListener('animationend', () => fruitMissed(fruit));
 
-        function closeMemoryGame() {
-            ui.memoryModal.style.display = 'none';
-            if (memoryGameActive) {
-                showMessage("Memory Game cancelled.");
-                memoryGameActive = false;
-            }
-        }
-
-        function flipCard(e) {
-            const clickedCard = e.currentTarget;
-            if (lockBoard || clickedCard === firstCard || clickedCard.classList.contains('is-matched')) return;
-
-            clickedCard.classList.add('is-flipped');
-
-            if (!firstCard) {
-                firstCard = clickedCard;
-                return;
+                ui.reactionArea.appendChild(fruit);
             }
 
-            secondCard = clickedCard;
-            lockBoard = true;
-            checkForMatch();
-        }
+            function fruitClicked(fruitEl) {
+                if (!fruitEl.parentNode || reactionGameState !== 'running') return; 
+                fruitEl.remove();
+                
+                reactionGameScore += 10;
+                ui.reactionScore.textContent = reactionGameScore;
+            }
 
-        function checkForMatch() {
-            let isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
-            isMatch ? disableCards() : unflipCards();
-        }
-
-        function disableCards() {
-            firstCard.classList.add('is-matched');
-            secondCard.classList.add('is-matched');
+            function fruitMissed(fruitEl) {
+                if (!fruitEl.parentNode || reactionGameState !== 'running') return; 
+                fruitEl.remove();
+                
+                reactionGameLives--;
+                ui.reactionLives.textContent = reactionGameLives;
+                
+                if (reactionGameLives <= 0) {
+                    endReactionGame();
+                }
+            }
             
-            pairsMatched++;
-            if (pairsMatched === cardEmojis.length) {
-                // --- GAME WON ---
-                memoryGameActive = false;
-                let coinsWon = Math.floor(Math.random() * 50) + 25;
-                let xpWon = 50;
+            function endReactionGame() {
+                if (reactionGameState !== 'running') return; 
+                reactionGameState = 'over';
+                
+                clearInterval(reactionSpawnInterval);
+                clearTimeout(reactionGameTimer);
+
+                const remainingFruits = ui.reactionArea.querySelectorAll('.reaction-fruit-item');
+                remainingFruits.forEach(fruit => fruit.remove());
+                
+                ui.reactionStartBtn.style.display = 'block';
+                ui.reactionStartBtn.textContent = 'Play Again';
+
+                let coinsWon = reactionGameScore; 
+                let xpWon = Math.floor(reactionGameScore / 2);
                 gameState.coins += coinsWon;
                 gameState.xp += xpWon;
-                ui.memoryMessage.textContent = `You won! +💰${coinsWon} & +✨${xpWon} XP!`;
-                createParticles('🎉', 10);
+                
+                ui.reactionMessage.textContent = `Game Over! Score: ${reactionGameScore}! +💰${coinsWon} & +✨${xpWon}`;
+                updateUI();
+            }
+
+            window.closeReactionGame = function() {
+                if (reactionGameState === 'running') {
+                    endReactionGame();
+                }
+                reactionGameState = 'idle';
+                ui.reactionModal.style.display = 'none';
+            }
+
+            window.openShop = function() {
+                populateShop();
+                ui.shopModal.style.display = 'block';
+            }
+            
+            function populateShop() {
+                ui.shopAccessoryGrid.innerHTML = '';
+                ui.shopBackgroundGrid.innerHTML = '';
+
+                shopItems.accessories.forEach(item => {
+                    const owned = gameState.inventory.includes(item.id);
+                    ui.shopAccessoryGrid.innerHTML += `
+                        <div class="shop-item">
+                            <div class="shop-item-icon">${item.icon}</div>
+                            <span>${item.name}</span>
+                            <button class="buy-btn" onclick="buyItem('${item.id}', ${item.price})" ${owned ? 'disabled' : ''}>
+                                ${owned ? 'Owned' : `💰 ${item.price}`}
+                            </button>
+                        </div>
+                    `;
+                });
+
+                shopItems.backgrounds.forEach(item => {
+                    const owned = gameState.inventory.includes(item.id);
+                    ui.shopBackgroundGrid.innerHTML += `
+                        <div class="shop-item">
+                            <div class="shop-item-icon">${item.icon}</div>
+                            <span>${item.name}</span>
+                            <button class="buy-btn" onclick="buyItem('${item.id}', ${item.price})" ${owned ? 'disabled' : ''}>
+                                ${owned ? 'Owned' : `💰 ${item.price}`}
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                ui.buyBtnFood.disabled = gameState.coins < 30;
+            }
+
+            window.closeShop = function() {
+                ui.shopModal.style.display = 'none';
+            }
+
+            window.buyItem = function(item, cost) {
+                if (gameState.coins < cost) {
+                    showMessage("Not enough coins! 😢");
+                    return;
+                }
+                
+                gameState.coins -= cost;
+                
+                if (item === 'food') {
+                    gameState.hunger = Math.min(100, gameState.hunger + 50);
+                    gameState.happiness = Math.min(100, gameState.happiness + 50);
+                    gameState.health = Math.min(100, gameState.health + 50);
+                    gameState.energy = Math.min(100, gameState.energy + 50);
+                    showMessage("That was a SUPER meal! 🍎✨");
+                    createParticles('🍎', 10);
+                } else {
+                    gameState.inventory.push(item);
+                    const purchasedItem = [...shopItems.accessories, ...shopItems.backgrounds].find(i => i.id === item);
+                    showMessage(`Bought ${purchasedItem.name}! ${purchasedItem.icon}`);
+                    createParticles(purchasedItem.icon, 5);
+                }
+                
+                updateUI();
+                populateShop();
+            }
+
+            window.openWardrobe = function() {
+                populateWardrobe();
+                ui.wardrobeModal.style.display = 'block';
+            }
+            
+            function populateWardrobe() {
+                ui.wardrobeAccessoryGrid.innerHTML = '';
+                ui.wardrobeBackgroundGrid.innerHTML = '';
+
+                shopItems.accessories.forEach(item => {
+                    if (gameState.inventory.includes(item.id)) {
+                        let isEquipped = false;
+                        if (item.id === 'tophat' || item.id === 'partyhat') {
+                            isEquipped = gameState.equipped.hat === item.id;
+                        } else if (item.id === 'glasses') {
+                            isEquipped = gameState.equipped.glasses;
+                        } else if (item.id === 'bowtie') {
+                            isEquipped = gameState.equipped.bowtie;
+                        } else if (item.id === 'crown') {
+                            isEquipped = gameState.equipped.crown;
+                        } else if (item.id === 'cape') {
+                            isEquipped = gameState.equipped.cape;
+                        }
+                        
+                        ui.wardrobeAccessoryGrid.innerHTML += `
+                            <div class="wardrobe-item ${isEquipped ? 'is-equipped' : ''}">
+                                <div class="wardrobe-item-icon">${item.icon}</div>
+                                <span>${item.name}</span>
+                                <button class="toggle-btn ${isEquipped ? 'is-equipped' : ''}" onclick="toggleEquip('${item.id}')">
+                                    ${isEquipped ? 'Unequip' : 'Equip'}
+                                </button>
+                            </div>
+                        `;
+                    }
+                });
+
+                const allBgs = [{ id: 'default', name: 'Default Sky', icon: '☁️' }, ...shopItems.backgrounds];
+                allBgs.forEach(item => {
+                    if (gameState.inventory.includes(item.id)) {
+                        const isEquipped = gameState.equipped.background === item.id;
+                        ui.wardrobeBackgroundGrid.innerHTML += `
+                            <div class="wardrobe-item ${isEquipped ? 'is-equipped' : ''}">
+                                <div class="wardrobe-item-icon">${item.icon}</div>
+                                <span>${item.name}</span>
+                                <button class="toggle-btn" onclick="equipBackground('${item.id}')" ${isEquipped ? 'disabled' : ''}>
+                                    ${isEquipped ? 'Equipped' : 'Equip'}
+                                </button>
+                            </div>
+                        `;
+                    }
+                });
+            }
+            
+            window.closeWardrobe = function() {
+                ui.wardrobeModal.style.display = 'none';
+            }
+            
+            window.toggleEquip = function(itemId) {
+                if (itemId === 'tophat' || itemId === 'partyhat') {
+                    if (gameState.equipped.hat === itemId) {
+                        gameState.equipped.hat = 'none';
+                    } else {
+                        gameState.equipped.hat = itemId;
+                    }
+                } else if (itemId === 'glasses') {
+                    gameState.equipped.glasses = !gameState.equipped.glasses;
+                } else if (itemId === 'bowtie') {
+                    gameState.equipped.bowtie = !gameState.equipped.bowtie;
+                } else if (itemId === 'crown') {
+                    gameState.equipped.crown = !gameState.equipped.crown;
+                } else if (itemId === 'cape') {
+                    gameState.equipped.cape = !gameState.equipped.cape;
+                }
+                
+                populateWardrobe();
                 updateUI();
             }
             
-            resetBoard();
-        }
-
-        function unflipCards() {
-            setTimeout(() => {
-                firstCard.classList.remove('is-flipped');
-                secondCard.classList.remove('is-flipped');
-                resetBoard();
-            }, 1000);
-        }
-
-        function resetBoard() {
-            [firstCard, secondCard, lockBoard] = [null, null, false];
-        }
-
-        // --- Reaction Game (UPDATED) ---
-        function openReactionGame() {
-            if (gameState.energy < 10) {
-                showMessage("I'm too tired for games! 😴 (Needs 10 Energy)");
-                return;
-            }
-            if (reactionGameState === 'running') {
-                ui.reactionModal.style.display = 'block';
-                return;
+            window.equipBackground = function(bgId) {
+                gameState.equipped.background = bgId;
+                populateWardrobe();
+                updateUI();
             }
             
-            gameState.energy = Math.max(0, gameState.energy - 10);
-            updateUI();
-            
-            ui.reactionModal.style.display = 'block';
-            setupReactionGame();
-        }
-
-        function setupReactionGame() {
-            reactionGameState = 'idle';
-            reactionGameScore = 0;
-            reactionGameLives = 3;
-            
-            ui.reactionScore.textContent = reactionGameScore;
-            ui.reactionLives.textContent = reactionGameLives;
-            ui.reactionMessage.textContent = "Click Start to Play! (Cost: 10 Energy)";
-            ui.reactionStartBtn.textContent = "Start Game";
-            ui.reactionStartBtn.style.display = 'block';
-            
-            // Clear any existing fruits
-            ui.reactionArea.innerHTML = '';
-            
-            if (reactionSpawnInterval) clearInterval(reactionSpawnInterval);
-            if (reactionGameTimer) clearTimeout(reactionGameTimer);
-        }
-
-        function startReactionGame() {
-            if (reactionGameState === 'running') return;
-            reactionGameState = 'running';
-            
-            reactionGameScore = 0;
-            reactionGameLives = 3;
-            ui.reactionScore.textContent = reactionGameScore;
-            ui.reactionLives.textContent = reactionGameLives;
-
-            ui.reactionStartBtn.style.display = 'none';
-            ui.reactionMessage.textContent = "Catch them all!";
-
-            // Start spawning fruits
-            reactionSpawnInterval = setInterval(spawnFruit, 1000); // Spawn fruit every 1s
-            
-            // Set game timer for 30 seconds
-            reactionGameTimer = setTimeout(endReactionGame, 30000); 
-        }
-        
-        function spawnFruit() {
-            if (reactionGameState !== 'running') return;
-
-            const fruit = document.createElement('div');
-            fruit.className = 'reaction-fruit-item';
-
-            const fruits = ['🍓', '🍎', '🍉', '🍊', '🍌', '🍒'];
-            fruit.textContent = fruits[Math.floor(Math.random() * fruits.length)];
-            
-            fruit.style.left = (Math.random() * 80 + 10) + '%'; // Random horizontal position
-            
-            const fallSpeed = (Math.random() * 1.5 + 1.5) + 's'; // 1.5s to 3s
-            fruit.style.animation = `fall ${fallSpeed} linear forwards`;
-
-            fruit.addEventListener('click', () => fruitClicked(fruit));
-            fruit.addEventListener('touchstart', (e) => {
-                e.preventDefault(); // Prevents click firing as well
-                fruitClicked(fruit);
-            });
-            fruit.addEventListener('animationend', () => fruitMissed(fruit));
-
-            ui.reactionArea.appendChild(fruit);
-        }
-
-        function fruitClicked(fruitEl) {
-            if (!fruitEl.parentNode || reactionGameState !== 'running') return; 
-            fruitEl.remove();
-            
-            reactionGameScore += 10;
-            ui.reactionScore.textContent = reactionGameScore;
-        }
-
-        function fruitMissed(fruitEl) {
-            if (!fruitEl.parentNode || reactionGameState !== 'running') return; 
-            fruitEl.remove();
-            
-            reactionGameLives--;
-            ui.reactionLives.textContent = reactionGameLives;
-            
-            if (reactionGameLives <= 0) {
-                endReactionGame();
-            }
-        }
-        
-        function endReactionGame() {
-            if (reactionGameState !== 'running') return; 
-            reactionGameState = 'over';
-            
-            clearInterval(reactionSpawnInterval);
-            clearTimeout(reactionGameTimer);
-
-            // Clear remaining fruits
-            const remainingFruits = ui.reactionArea.querySelectorAll('.reaction-fruit-item');
-            remainingFruits.forEach(fruit => fruit.remove());
-            
-            ui.reactionStartBtn.style.display = 'block';
-            ui.reactionStartBtn.textContent = 'Play Again';
-
-            let coinsWon = reactionGameScore; 
-            let xpWon = Math.floor(reactionGameScore / 2);
-            gameState.coins += coinsWon;
-            gameState.xp += xpWon;
-            
-            ui.reactionMessage.textContent = `Game Over! Score: ${reactionGameScore}! +💰${coinsWon} & +✨${xpWon}`;
-            updateUI(); // Update main game coins/xp
-        }
-
-        function closeReactionGame() {
-            if (reactionGameState === 'running') {
-                endReactionGame();
-            }
-            reactionGameState = 'idle';
-            ui.reactionModal.style.display = 'none';
-        }
-
-
-        // --- Shop (Updated) ---
-        function openShop() {
-            ui.buyBtnTopHat.disabled = gameState.itemsOwned.tophat;
-            ui.buyBtnTopHat.textContent = gameState.itemsOwned.tophat ? 'Owned' : '💰 50';
-            
-            ui.buyBtnPartyHat.disabled = gameState.itemsOwned.partyhat;
-            ui.buyBtnPartyHat.textContent = gameState.itemsOwned.partyhat ? 'Owned' : '💰 60';
-            
-            ui.buyBtnGlasses.disabled = gameState.itemsOwned.glasses;
-            ui.buyBtnGlasses.textContent = gameState.itemsOwned.glasses ? 'Owned' : '💰 75';
-            
-            ui.buyBtnBowtie.disabled = gameState.itemsOwned.bowtie;
-            ui.buyBtnBowtie.textContent = gameState.itemsOwned.bowtie ? 'Owned' : '💰 40';
-
-            ui.buyBtnFood.disabled = gameState.coins < 30;
-
-            ui.shopModal.style.display = 'block';
-        }
-
-        function closeShop() {
-            ui.shopModal.style.display = 'none';
-        }
-
-        function buyItem(item, cost) {
-            if (gameState.coins < cost) {
-                showMessage("Not enough coins! 😢");
-                return;
+            window.closeModal = function(modalId) {
+                document.getElementById(modalId).style.display = 'none';
             }
             
-            gameState.coins -= cost;
-            
-            if (item === 'tophat') {
-                gameState.itemsOwned.tophat = true;
-                showMessage("Wow, a new Top Hat! 🎩");
-                createParticles('🎩', 5);
-            } else if (item === 'partyhat') {
-                gameState.itemsOwned.partyhat = true;
-                showMessage("A Party Hat! 🎉");
-                createParticles('🎉', 5);
-            } else if (item === 'glasses') {
-                gameState.itemsOwned.glasses = true;
-                showMessage("Looking cool! 😎");
-                createParticles('😎', 5);
-            } else if (item === 'bowtie') {
-                gameState.itemsOwned.bowtie = true;
-                showMessage("So fancy! 🎀");
-                createParticles('🎀', 5);
-            } else if (item === 'food') {
-                gameState.hunger = Math.min(100, gameState.hunger + 50);
-                gameState.happiness = Math.min(100, gameState.happiness + 50);
-                gameState.health = Math.min(100, gameState.health + 50);
-                gameState.energy = Math.min(100, gameState.energy + 50);
-                showMessage("That was a SUPER meal! 🍎✨");
-                createParticles('🍎', 10);
-            }
-            
-            updateUI();
-            openShop(); // Re-open shop to update button states
-        }
+            function checkDailyReward() {
+                const now = new Date();
+                const today = now.toDateString();
+                
+                let lastRewardDate = null;
+                if (gameState.lastDailyReward) {
+                    lastRewardDate = new Date(gameState.lastDailyReward).toDateString();
+                }
 
-        // --- Wardrobe (NEW) ---
-        function openWardrobe() {
-            ui.wardrobeModal.style.display = 'block';
-            updateWardrobeUI();
-        }
-        
-        function closeWardrobe() {
-            ui.wardrobeModal.style.display = 'none';
-        }
-        
-        function updateWardrobeUI() {
-            // Top Hat
-            ui.toggleBtnTopHat.disabled = !gameState.itemsOwned.tophat;
-            if (gameState.itemsOwned.tophat) {
-                ui.toggleBtnTopHat.textContent = gameState.itemsEquipped.hat === 'tophat' ? 'Unequip' : 'Equip';
-                ui.toggleBtnTopHat.classList.toggle('is-equipped', gameState.itemsEquipped.hat === 'tophat');
-            }
-            
-            // Party Hat
-            ui.toggleBtnPartyHat.disabled = !gameState.itemsOwned.partyhat;
-            if (gameState.itemsOwned.partyhat) {
-                ui.toggleBtnPartyHat.textContent = gameState.itemsEquipped.hat === 'partyhat' ? 'Unequip' : 'Equip';
-                ui.toggleBtnPartyHat.classList.toggle('is-equipped', gameState.itemsEquipped.hat === 'partyhat');
-            }
-            
-            // Glasses
-            ui.toggleBtnGlasses.disabled = !gameState.itemsOwned.glasses;
-            if (gameState.itemsOwned.glasses) {
-                ui.toggleBtnGlasses.textContent = gameState.itemsEquipped.glasses ? 'Unequip' : 'Equip';
-                ui.toggleBtnGlasses.classList.toggle('is-equipped', gameState.itemsEquipped.glasses);
-            }
-            
-            // Bowtie
-            ui.toggleBtnBowtie.disabled = !gameState.itemsOwned.bowtie;
-            if (gameState.itemsOwned.bowtie) {
-                ui.toggleBtnBowtie.textContent = gameState.itemsEquipped.bowtie ? 'Unequip' : 'Equip';
-                ui.toggleBtnBowtie.classList.toggle('is-equipped', gameState.itemsEquipped.bowtie);
-            }
-        }
-        
-        function toggleEquip(itemType, itemName) {
-            if (itemType === 'hat') {
-                if (gameState.itemsEquipped.hat === itemName) {
-                    gameState.itemsEquipped.hat = 'none'; // Unequip
+                if (today !== lastRewardDate) {
+                    ui.dailyRewardBtn.style.display = 'block';
                 } else {
-                    gameState.itemsEquipped.hat = itemName; // Equip
+                    ui.dailyRewardBtn.style.display = 'none';
                 }
             }
-            
-            if (itemType === 'glasses') {
-                gameState.itemsEquipped.glasses = !gameState.itemsEquipped.glasses;
+
+            window.claimDailyReward = function() {
+                gameState.coins += 100;
+                gameState.lastDailyReward = new Date().toISOString();
+                ui.dailyRewardBtn.style.display = 'none';
+                ui.dailyRewardModal.style.display = 'block';
+                updateUI();
+                saveGame();
             }
             
-            if (itemType === 'bowtie') {
-                gameState.itemsEquipped.bowtie = !gameState.itemsEquipped.bowtie;
+            function assignNewQuest() {
+                if (gameState.activeQuest === null) {
+                    gameState.activeQuest = quests[Math.floor(Math.random() * quests.length)];
+                    gameState.questProgress = 0;
+                    console.log("New Quest Assigned:", gameState.activeQuest.id);
+                }
+                updateQuestDisplay();
             }
-            
-            updateWardrobeUI(); // Refresh wardrobe buttons
-            updateUI(); // Refresh pet visibility
-        }
 
+            function updateQuestDisplay() {
+                if (gameState.activeQuest) {
+                    const quest = gameState.activeQuest;
+                    ui.questDisplay.textContent = `${quest.title} (${gameState.questProgress}/${quest.target})`;
+                    ui.questDisplay.style.display = 'block';
+                } else {
+                    ui.questDisplay.style.display = 'none';
+                }
+            }
 
-        // --- Initialize Game ---
-        function init() {
-            loadGame(); // Load save and apply offline progress / migration
-            updateUI(); // Initial UI sync
-            setInterval(gameLoop, 1000); // Start the live game loop
-            registerPWA(); // <-- ADDED THIS CALL
-        }
-
-        // Start the game when the page loads
-        window.onload = init;
-
-        // --- PWA Setup ---
-        function registerPWA() {
-            // 1. Create Manifest
-            const manifest = {
-                "name": "Wobbles - Virtual Pet",
-                "short_name": "Wobbles",
-                "start_url": ".",
-                "display": "standalone",
-                "background_color": "#667eea",
-                "theme_color": "#4facfe",
-                "description": "A fun virtual pet game.",
-                "icons": [
-                    {
-                        "src": "https://pbs.twimg.com/media/G4x4K1HXAAAPy5X?format=png&name=small",
-                        "sizes": "192x192",
-                        "type": "image/png"
-                    },
-                    {
-                        "src": "https://pbs.twimg.com/media/G4x4K1HXAAAPy5X?format=png&name=small",
-                        "sizes": "512x512",
-                        "type": "image/png"
+            function progressQuest(questType) {
+                if (gameState.activeQuest && gameState.activeQuest.type === questType) {
+                    gameState.questProgress++;
+                    if (gameState.questProgress >= gameState.activeQuest.target) {
+                        const reward = gameState.activeQuest.reward;
+                        const oldQuestTitle = gameState.activeQuest.title;
+                        showMessage(`Quest Complete: ${oldQuestTitle}! +💰${reward} Coins!`);
+                        gameState.coins += reward;
+                        gameState.activeQuest = null;
+                        gameState.questProgress = 0;
+                        setTimeout(assignNewQuest, 5000);
                     }
-                ]
-            };
-            const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-            const manifestUrl = URL.createObjectURL(manifestBlob);
-            document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
+                    updateQuestDisplay();
+                }
+            }
 
-            // 2. Register Service Worker for offline capability
-            if ('serviceWorker' in navigator) {
-                const swCode = `
-                    const CACHE_NAME = 'wobbles-cache-v1';
-                    // We only cache the logo, as the game itself is fully contained in the HTML.
-                    const urlsToCache = [
-                        '${location.href}', // Cache the main HTML file itself
-                        'https://pbs.twimg.com/media/G4x4K1HXAAAPy5X?format=png&name=small'
-                    ];
+            function init() {
+                loadGame();
+                updateUI();
+                checkDailyReward();
+                assignNewQuest();
+                setInterval(gameLoop, 1000);
+                registerPWA();
+            }
 
-                    self.addEventListener('install', event => {
-                        event.waitUntil(
-                            caches.open(CACHE_NAME)
-                                .then(cache => {
-                                    console.log('Opened cache');
-                                    // Use addAll for atomic cache addition
-                                    return cache.addAll(urlsToCache).catch(err => {
-                                        console.warn('Failed to cache all URLs:', err);
-                                        // Try caching individually as a fallback
-                                        return Promise.all(urlsToCache.map(url => {
-                                            return cache.add(url).catch(addErr => {
-                                                console.warn('Failed to cache:', url, addErr);
-                                            });
-                                        }));
-                                    });
-                                })
-                        );
-                    });
+            init();
 
-                    self.addEventListener('fetch', event => {
-                        event.respondWith(
-                            caches.match(event.request)
-                                .then(response => {
-                                    // Cache hit - return response
-                                    if (response) {
-                                        return response;
-                                    }
-                                    // Not in cache, fetch from network
-                                    return fetch(event.request).then(
-                                        networkResponse => {
-                                            // Check if we received a valid response
-                                            if(!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+            // --- PWA Setup ---
+            function registerPWA() {
+                // --- APK FIX 3: Conditional PWA ---
+                if ('serviceWorker' in navigator && !window.location.protocol.startsWith('file')) {
+                    // 1. Create Manifest
+                    const manifest = {
+                        "name": "Wobbles - Virtual Pet",
+                        "short_name": "Wobbles",
+                        "start_url": ".",
+                        "display": "standalone",
+                        "background_color": "#667eea",
+                        "theme_color": "#4facfe",
+                        "description": "A fun virtual pet game.",
+                        "icons": [
+                            {
+                                "src": "https://pbs.twimg.com/media/G4x4K1HXAAAPy5X?format=png&name=small",
+                                "sizes": "192x192",
+                                "type": "image/png"
+                            },
+                            {
+                                "src": "https://pbs.twimg.com/media/G4x4K1HXAAAPy5X?format=png&name=small",
+                                "sizes": "512x512",
+                                "type": "image/png"
+                            }
+                        ]
+                    };
+                    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+                    const manifestUrl = URL.createObjectURL(manifestBlob);
+                    document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
+
+                    // 2. Register Service Worker
+                    const swCode = `
+                        const CACHE_NAME = 'wobbles-cache-v1';
+                        const urlsToCache = [
+                            '${location.href}',
+                            'https://pbs.twimg.com/media/G4x4K1HXAAAPy5X?format=png&name=small'
+                        ];
+
+                        self.addEventListener('install', event => {
+                            event.waitUntil(
+                                caches.open(CACHE_NAME)
+                                    .then(cache => {
+                                        console.log('Opened cache');
+                                        return cache.addAll(urlsToCache).catch(err => {
+                                            console.warn('Failed to cache all URLs:', err);
+                                            return Promise.all(urlsToCache.map(url => {
+                                                return cache.add(url).catch(addErr => {
+                                                    console.warn('Failed to cache:', url, addErr);
+                                                });
+                                            }));
+                                        });
+                                    })
+                            );
+                        });
+
+                        self.addEventListener('fetch', event => {
+                            event.respondWith(
+                                caches.match(event.request)
+                                    .then(response => {
+                                        if (response) {
+                                            return response;
+                                        }
+                                        return fetch(event.request).then(
+                                            networkResponse => {
+                                                if(!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+                                                    return networkResponse;
+                                                }
+                                                const responseToCache = networkResponse.clone();
+                                                caches.open(CACHE_NAME)
+                                                    .then(cache => {
+                                                        cache.put(event.request, responseToCache);
+                                                    });
                                                 return networkResponse;
                                             }
-
-                                            // Clone the response
-                                            const responseToCache = networkResponse.clone();
-
-                                            caches.open(CACHE_NAME)
-                                                .then(cache => {
-                                                    cache.put(event.request, responseToCache);
-                                                });
-
-                                            return networkResponse;
-                                        }
-                                    );
-                                }
-                            )
-                        );
-                    });
-
-                    // Clean up old caches
-                    self.addEventListener('activate', event => {
-                        const cacheWhitelist = [CACHE_NAME];
-                        event.waitUntil(
-                            caches.keys().then(cacheNames => {
-                                return Promise.all(
-                                    cacheNames.map(cacheName => {
-                                        if (cacheWhitelist.indexOf(cacheName) === -1) {
-                                            return caches.delete(cacheName);
-                                        }
-                                    })
-                                );
-                            })
-                        );
-                    });
-                `;
-                
-                try {
-                    const blob = new Blob([swCode], { type: 'application/javascript' });
-                    const swUrl = URL.createObjectURL(blob);
-                    navigator.serviceWorker.register(swUrl)
-                        .then(registration => {
-                            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                        })
-                        .catch(err => {
-                            console.log('ServiceWorker registration failed: ', err);
+                                        );
+                                    }
+                                )
+                            );
                         });
-                } catch (e) {
-                    console.error('Error creating ServiceWorker Blob:', e);
+
+                        self.addEventListener('activate', event => {
+                            const cacheWhitelist = [CACHE_NAME];
+                            event.waitUntil(
+                                caches.keys().then(cacheNames => {
+                                    return Promise.all(
+                                        cacheNames.map(cacheName => {
+                                            if (cacheWhitelist.indexOf(cacheName) === -1) {
+                                                return caches.delete(cacheName);
+                                            }
+                                        })
+                                    );
+                                })
+                            );
+                        });
+                    `;
+                    
+                    try {
+                        const blob = new Blob([swCode], { type: 'application/javascript' });
+                        const swUrl = URL.createObjectURL(blob);
+                        navigator.serviceWorker.register(swUrl)
+                            .then(registration => {
+                                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                            })
+                            .catch(err => {
+                                console.log('ServiceWorker registration failed: ', err);
+                            });
+                    } catch (e) {
+                        console.error('Error creating ServiceWorker Blob:', e);
+                    }
+                } else {
+                    console.log('PWA Service Worker not registered (running on file:// or not supported).');
                 }
             }
-        }
-
+        }); // --- END: DOMContentLoaded ---
     </script>
 </body>
 </html>
-
-
-
-
 
