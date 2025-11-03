@@ -19,9 +19,11 @@
             box-sizing: border-box;
         }
 
+        /* JAVÍTÁS: Visszaállítva a görgetés */
         html, body {
-            height: 100%; /* Ensure full height for mobile */
-            overflow: hidden; /* Prevent body scrolling */
+            min-height: 100%; /* Kitölti a képernyőt, de enged nőni */
+            overflow-x: hidden; /* Vízszintes görgetés tiltása */
+            overflow-y: auto;   /* Függőleges görgetés engedélyezése, HA KELL */
         }
 
         body {
@@ -29,19 +31,19 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Default for mobile */
-            -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+            align-items: flex-start; 
+            -webkit-tap-highlight-color: transparent; 
         }
 
         .game-container {
             background: white;
-            border-radius: 0; /* Default for mobile */
-            box-shadow: none; /* Default for mobile */
-            max-width: 450px; /* Keep max-width for consistency */
+            border-radius: 0; 
+            box-shadow: none; 
+            max-width: 450px; 
             width: 100%;
-            overflow: hidden; /* No scrolling in the container */
+            overflow: hidden; 
             position: relative;
-            height: 100%; /* Full height */
+            min-height: 100vh; /* JAVÍTÁS: height: 100%-ról min-height-re */
             display: flex;
             flex-direction: column;
         }
@@ -49,7 +51,7 @@
         /* --- Header --- */
         .header {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            padding: 25px;
+            padding: 20px 15px; /* CSÖKKENTVE */
             text-align: center;
             color: white;
             position: relative;
@@ -57,7 +59,7 @@
         }
 
         .header h1 {
-            font-size: 36px;
+            font-size: 32px; /* CSÖKKENTVE */
             text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
             letter-spacing: 2px;
             display: flex;
@@ -76,7 +78,7 @@
         
         .header-emoji-fallback {
             display: none;
-            font-size: 36px; /* Match h1 */
+            font-size: 32px; /* CSÖKKENTVE */
             margin-right: 10px;
             text-shadow: none; /* Already part of h1 */
         }
@@ -96,8 +98,8 @@
         .stats-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            padding: 20px;
+            gap: 10px; /* CSÖKKENTVE */
+            padding: 15px; /* CSÖKKENTVE */
             background: #f8f9fa;
             border-bottom: 3px solid #e9ecef;
             flex-shrink: 0;
@@ -105,7 +107,7 @@
 
         .stat {
             background: white;
-            padding: 12px;
+            padding: 10px; /* CSÖKKENTVE */
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
@@ -131,7 +133,7 @@
 
         .stat-bar {
             width: 100%;
-            height: 24px;
+            height: 20px; /* CSÖKKENTVE */
             background: #e9ecef;
             border-radius: 12px;
             overflow: hidden;
@@ -169,7 +171,7 @@
             text-align: center;
             background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
             flex: 1 1 auto; /* Allow pet-area to grow and shrink */
-            min-height: 300px; /* Reduced min-height */
+            min-height: 280px; /* CSÖKKENTVE */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -259,7 +261,7 @@
         .wobbles-container {
             position: relative;
             cursor: pointer;
-            margin-top: 20px; 
+            margin-top: 10px; /* CSÖKKENTVE */
             z-index: 1;
             transform: scale(var(--pet-scale, 1.0));
             transition: transform 0.5s ease;
@@ -648,8 +650,8 @@
         .actions {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            padding: 20px;
+            gap: 10px; /* CSÖKKENTVE */
+            padding: 15px; /* CSÖKKENTVE */
             background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
             flex-shrink: 0;
             position: relative;
@@ -660,9 +662,9 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 18px 10px;
+            padding: 15px 10px; /* CSÖKKENTVE */
             border-radius: 18px;
-            font-size: 28px;
+            font-size: 24px; /* CSÖKKENTVE */
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 5px 20px rgba(0,0,0,0.25);
@@ -701,8 +703,8 @@
         .action-btn.clean { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
 
         .action-label {
-            font-size: 11px;
-            margin-top: 6px;
+            font-size: 10px; /* CSÖKKENTVE */
+            margin-top: 4px; /* CSÖKKENTVE */
             display: block;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
